@@ -12,7 +12,6 @@ http_scheme = HTTPBearer()
 setting = Settings()
 
 def generate_token(user_id: str) -> str:
-    # user_id = user.get("user_id")
     payload = {
         "exp": int(time.time()) + setting.JWT_EXPIRE_SECONDS,
         "iss": "Jobs-Jr",
@@ -21,7 +20,6 @@ def generate_token(user_id: str) -> str:
     }
     # print(setting.JWT_PRIVATE_KEY)
     token = jwt.encode(payload=payload, key=setting.JWT_PRIVATE_KEY, algorithm="RS256")
-    # token = jwt.decode(jwt=token, key=setting.JWT_PUBLIC_KEY, algorithms="RS256")
     return token
 
 def credentials_exception(detail: str = "Could not validate credentials") -> HTTPException:
