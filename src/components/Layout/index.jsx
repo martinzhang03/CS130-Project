@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-import Header from "../Header";
+import { faAddressCard } from "@fortawesome/free-regular-svg-icons";
 import {
   faArrowRightFromBracket,
   faClockRotateLeft,
@@ -7,9 +6,10 @@ import {
   faListCheck,
   faPeopleGroup,
 } from "@fortawesome/free-solid-svg-icons";
-import { faAddressCard } from "@fortawesome/free-regular-svg-icons";
-import { Button, Menu } from "antd";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Button, Menu } from "antd";
+import React, { useEffect, useState } from "react";
+import Header from "../Header";
 
 import helpImg from "@/assets/help.png";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -115,6 +115,7 @@ const Layout = () => {
                 width: 300,
                 padding: 20,
                 position: "relative",
+                display: "none",
               }}
             >
               {/* icon box */}

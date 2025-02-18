@@ -1,7 +1,26 @@
+:root {
+  --bgColor: #e3e3e3;
+}
+
 body {
   margin: 0;
 }
 
 div {
   box-sizing: border-box;
+}
+
+/* 单行文本溢出 */
+.single-line-ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 多行文本溢出 */
+.multi-line-ellipsis {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
 }
