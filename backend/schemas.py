@@ -11,3 +11,15 @@ class TaskCreate(BaseModel):
     dependencies: List[int] = Field(default=[], title="Dependencies", description="List of dependent task IDs")
     assignees: List[int] = Field(default=[], title="Assignees", description="User IDs assigned to this task")
     description: str = Field(..., title="Description", max_length=1000)
+
+class UserEmail(BaseModel):
+    email: str
+
+class UserConfirmation(BaseModel):
+    email: str
+    confirm_code: str
+    password: str
+
+class UserLogin(BaseModel):
+    email: str
+    password: str

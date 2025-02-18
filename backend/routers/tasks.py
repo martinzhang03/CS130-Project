@@ -22,6 +22,7 @@ async def create_task(data: schemas.TaskCreate, db: asyncpg.Connection = Depends
     """
     Creates a new task and assigns it to a user.
     """
+<<<<<<< HEAD
     # TODO: Validate user_id at the start
 
     async with db.transaction():
@@ -57,3 +58,8 @@ async def create_task(data: schemas.TaskCreate, db: asyncpg.Connection = Depends
 
     data.task_id = id
     return data
+=======
+    # CRUD function for database operations
+    return True
+
+>>>>>>> 2599cfc2c49c06c300ec846803acb3a9025103a5

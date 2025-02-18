@@ -1,5 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import Depends, FastAPI
+from schemas import *
+from database import *
 import asyncpg
 import os
 from routers import tasks
