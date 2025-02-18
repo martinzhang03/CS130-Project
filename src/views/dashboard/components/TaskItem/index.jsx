@@ -2,6 +2,7 @@ import { Avatar } from "antd";
 import dayjs from "dayjs";
 import React from "react";
 import Progress from "../Progress";
+import { getRandomRgbColor } from "../../../../utils/utils";
 
 const TaskItem = ({ infos = {} }) => {
   return (
@@ -100,7 +101,16 @@ const TaskItem = ({ infos = {} }) => {
             }}
           >
             {infos.assgins.map((user) => {
-              return <Avatar key={user.userid}>{user.name}</Avatar>;
+              return (
+                <Avatar
+                  key={user.userId}
+                  style={{
+                    backgroundColor: getRandomRgbColor(),
+                  }}
+                >
+                  {user.name}
+                </Avatar>
+              );
             })}
           </Avatar.Group>
         </div>

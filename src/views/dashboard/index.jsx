@@ -1,10 +1,11 @@
 import { faCalendar, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Button } from "antd";
+import { Button, Space } from "antd";
 import dayjs from "dayjs";
 import React, { useState } from "react";
 import AddTask from "./components/AddTask";
 import TaskItem from "./components/TaskItem";
+import TeamChat from "../../components/TeamChat";
 
 const taskList = [
   {
@@ -88,6 +89,33 @@ const taskList = [
       },
     ],
   },
+  {
+    taskId: 4,
+    name: "Task D",
+    desc: "This task foucus on the App design.",
+    startTime: "2025-02-18",
+    endTime: "",
+    progress: "0",
+    status: "wait",
+    assgins: [
+      {
+        userId: 1,
+        name: "A",
+      },
+      {
+        userId: 2,
+        name: "B",
+      },
+      {
+        userId: 3,
+        name: "C",
+      },
+      {
+        userId: 4,
+        name: "D",
+      },
+    ],
+  },
 ];
 
 const DashBoard = () => {
@@ -114,6 +142,7 @@ const DashBoard = () => {
           <div
             style={{
               flex: 1,
+              width: 0,
               marginRight: 15,
               borderRadius: 5,
               backgroundColor: "#fff",
@@ -174,21 +203,51 @@ const DashBoard = () => {
                 backgroundColor: "var(--bgColor)",
                 borderRadius: 5,
                 padding: 15,
+                overflowX: "scroll",
               }}
             >
-              <TaskItem infos={taskList[0]}></TaskItem>
+              <Space>
+                {taskList.map((info) => {
+                  return <TaskItem key={info.taskId} infos={info}></TaskItem>;
+                })}
+              </Space>
             </div>
             {/* task view */}
-            <div></div>
+
+            <div
+              style={{
+                flex: 1,
+                backgroundColor: "var(--bgColor)",
+                marginTop: 15,
+                borderRadius: 5,
+              }}
+            ></div>
           </div>
           <div
             style={{
               width: 300,
               height: "100%",
-              borderRadius: 10,
+              borderRadius: 5,
               backgroundColor: "#fff",
+              display: "flex",
+              padding: 15,
+              flexDirection: "column",
             }}
-          ></div>
+          >
+            {/* top */}
+            <div
+              style={{
+                flex: 1,
+                width: "100%",
+                backgroundColor: "var(--bgColor)",
+                borderRadius: 5,
+                marginBottom: 15,
+              }}
+            ></div>
+            {/* team chat */}
+
+            <TeamChat />
+          </div>
         </div>
       </div>
 

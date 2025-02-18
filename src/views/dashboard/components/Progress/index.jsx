@@ -31,7 +31,7 @@ const Progress = ({ val = 30 }) => {
             transform: "translateX(-50%) translateY(-50%)",
           }}
         >
-          {val == 0 ? "Wait" : val == 100 ? "Well Done" : `${val} %`}
+          {val == 0 ? "Wait" : val == 100 ? "Well Done" : `${val}%`}
         </div>
       </div>
     </>
