@@ -1,16 +1,14 @@
 from datetime import datetime
 import asyncpg
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
+from crud import insert_assignments, insert_task
+from database import get_db
 import schemas
 
 router = APIRouter(
     prefix="/tasks",
     tags=["tasks"]
 )
-
-async def get_db():
-    from main import db
-    return db
 
 @router.get("/{user_id}")
 async def get_user_tasks(user_id: str):
@@ -22,44 +20,25 @@ async def create_task(data: schemas.TaskCreate, db: asyncpg.Connection = Depends
     """
     Creates a new task and assigns it to a user.
     """
-<<<<<<< HEAD
     # TODO: Validate user_id at the start
+    try:
+        async with db.transaction():
+            id = await insert_task(db, data)
+            if id is None:
+                raise Exception("Failed to insert task into database")
+            await insert_assignments(db, data, id)
 
-    async with db.transaction():
-        query = """
-            INSERT INTO tasks (
-                title,
-                due_datetime,
-                description,
-                dependencies
-            ) VALUES (
-                $1,$2,$3,$4
-            ) RETURNING id
-        """
-
-        stmt = await db.prepare(query)
-        id = await stmt.fetchval(
-                data.task_name,
-                datetime.combine(data.due_date, data.due_time),
-                data.description,
-                data.dependencies 
-            )
-
-        query = """
-            INSERT INTO assignments (
-                user_id, task_id
-            ) VALUES (
-                $1,$2
-            )
-        """
-
-        stmt = await db.prepare(query)
-        await stmt.executemany(zip(data.assignees, [id]*len(data.assignees)))
-
-    data.task_id = id
-    return data
-=======
-    # CRUD function for database operations
-    return True
-
->>>>>>> 2599cfc2c49c06c300ec846803acb3a9025103a5
+        data.task_id = id
+        return data
+    except asyncpg.PostgresError as e:
+        # Handle database-specific errors
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error: {str(e)}"
+        )
+    except Exception as e:
+        # Catch any other unexpected exceptions
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"An error occurred: {str(e)}"
+        )

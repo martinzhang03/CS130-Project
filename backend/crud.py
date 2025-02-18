@@ -1,13 +1,15 @@
+from typing import Optional, Tuple
 import asyncpg
 import datetime
 import random
 import smtplib
 from config import Settings
 import bcrypt
+import schemas
 
 setting = Settings()
 
-def hash_info(password: str, salt=None) -> str:
+def hash_info(password: str, salt=None) -> Tuple[str, str]:
     salt = bcrypt.gensalt() if salt is None else salt.encode('utf-8')
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
     return salt.decode('utf-8'), hashed_password.decode('utf-8')
@@ -108,3 +110,38 @@ async def user_login(db: asyncpg.Connection, email: str):
             await db.execute(update_query, datetime.datetime.now(), user['id'])
             return user['id']
     return None
+
+async def insert_task(db: asyncpg.Connection, data: schemas.TaskCreate) -> Optional[int]:
+    """
+    Creates task and returns id
+    """
+    query = """
+        INSERT INTO tasks (
+            title,
+            due_datetime,
+            description,
+            dependencies
+        ) VALUES (
+            $1,$2,$3,$4
+        ) RETURNING id
+    """
+
+    stmt = await db.prepare(query)
+    return await stmt.fetchval(
+            data.task_name,
+            datetime.datetime.combine(data.due_date, data.due_time),
+            data.description,
+            data.dependencies 
+            )
+
+async def insert_assignments(db: asyncpg.Connection, data: schemas.TaskCreate, id: int) -> Optional[int]:
+    query = """
+        INSERT INTO assignments (
+            user_id, task_id
+        ) VALUES (
+            $1,$2
+        )
+    """
+
+    stmt = await db.prepare(query)
+    await stmt.executemany(zip(data.assignees, [id]*len(data.assignees)))

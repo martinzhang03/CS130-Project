@@ -1,6 +1,5 @@
 import asyncpg
 import os
-from fastapi import Depends
 from contextlib import asynccontextmanager
 from config import Settings
 
