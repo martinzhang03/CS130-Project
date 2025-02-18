@@ -35,7 +35,6 @@ INSERT INTO users (
     salt,
     password,
     user_type,
-    ip,
     login_at,
     login
 ) VALUES
