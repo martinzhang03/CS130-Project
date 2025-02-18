@@ -1,10 +1,13 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 import asyncpg
 import os
 from routers import tasks
 
 DATABASE_URL = os.getenv("DATABASE_URL")
+
+async def get_db():
+    return db
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -17,7 +20,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-app.include_router(tasks.router)
+app.include_router(tasks.router, dependencies=[Depends(get_db)])
 
 @app.get("/")
 async def root():
