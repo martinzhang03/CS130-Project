@@ -1,9 +1,128 @@
+import frameImg from "@/assets/frame.png";
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Button, Checkbox, Flex, Form, Input } from "antd";
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
+  const navigate = useNavigate();
+  const [form] = Form.useForm();
+
   return (
     <>
-      <div>Login</div>
+      <div
+        style={{
+          width: "100vw",
+          height: "100vh",
+          position: "relative",
+        }}
+      >
+        {/* Logo */}
+        <div
+          style={{
+            position: "absolute",
+            top: 20,
+            left: 30,
+            fontSize: 32,
+            fontWeight: 700,
+          }}
+        >
+          TaskFlow
+        </div>
+
+        {/* form box */}
+        <div
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: "50%",
+            transform: "translateX(-50%) translateY(-50%)",
+            width: "30%",
+            border: "1px solid rgba(208, 148, 148, 0.4)",
+            boxShadow: "2px 2px 4px 0px rgba(0, 0, 0, 0.25)",
+            borderRadius: 10,
+            padding: 30,
+            paddingBottom: 40,
+            paddingTop: 40,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 0,
+              textAlign: "center",
+            }}
+          >
+            <img
+              style={{
+                width: 80,
+              }}
+              src={frameImg}
+              alt=""
+            />
+          </div>
+          <div
+            style={{
+              marginBottom: 24,
+              color: "rgba(24, 25, 28, 1)",
+              fontSize: 32,
+              textAlign: "center",
+              marginTop: 30,
+            }}
+          >
+            Sign in to TaskFlow
+          </div>
+          <div
+            style={{
+              color: "rgba(94, 102, 112, 1)",
+              fontSize: 16,
+              fontWeight: 500,
+              textAlign: "center",
+              marginBottom: 24,
+            }}
+          >
+            Don’t have account
+            <a
+              style={{
+                marginLeft: 5,
+              }}
+              onClick={() => {
+                navigate("/register");
+              }}
+            >
+              Create Account
+            </a>
+          </div>
+
+          <Form form={form} autoComplete="off">
+            <Form.Item name="email">
+              <Input placeholder="Email address" />
+            </Form.Item>
+            <Form.Item name="pwd">
+              <Input.Password placeholder="Password" />
+            </Form.Item>
+            <Form.Item>
+              <Flex justify="space-between" align="center">
+                <Form.Item name="remember" valuePropName="checked" noStyle>
+                  <Checkbox>Remember me</Checkbox>
+                </Form.Item>
+                <Button type="link">Forgot password</Button>
+              </Flex>
+            </Form.Item>
+          </Form>
+          <Button
+            icon={<FontAwesomeIcon icon={faArrowRight} />}
+            iconPosition="end"
+            block
+            type="primary"
+            onClick={() => {
+              navigate("/dashboard");
+            }}
+          >
+            Sign In
+          </Button>
+        </div>
+      </div>
     </>
   );
 };

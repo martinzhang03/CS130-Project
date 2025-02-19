@@ -19,7 +19,7 @@ const TeamChat = () => {
           style={{
             width: "100%",
             height: 220,
-            overflowY: "scroll",
+            overflowY: "auto",
             padding: "12px 7px 0px 12px",
           }}
           className="scroll-box"

@@ -10,6 +10,15 @@ div {
   box-sizing: border-box;
 }
 
+a {
+  color: rgba(10, 101, 204, 1);
+  cursor: pointer;
+}
+
+a:hover {
+  color: rgba(10, 101, 204, 0.8);
+}
+
 /* 单行文本溢出 */
 .single-line-ellipsis {
   white-space: nowrap;
