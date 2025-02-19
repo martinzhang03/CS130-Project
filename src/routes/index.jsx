@@ -3,6 +3,7 @@ import { createBrowserRouter } from "react-router-dom";
 import Layout from "../components/Layout";
 
 const Login = lazy(() => import("@/views/login"));
+const Register = lazy(() => import("@/views/register"));
 const DashBoard = lazy(() => import("@/views/dashboard"));
 const Tasks = lazy(() => import("@/views/tasks"));
 const Teams = lazy(() => import("@/views/teams"));
@@ -13,6 +14,10 @@ const routes = createBrowserRouter([
   {
     path: "/login",
     element: <Login />,
+  },
+  {
+    path: "/register",
+    element: <Register />,
   },
   {
     path: "/",

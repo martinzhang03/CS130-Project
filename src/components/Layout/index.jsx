@@ -190,6 +190,9 @@ const Layout = () => {
               <Button
                 block
                 icon={<FontAwesomeIcon icon={faArrowRightFromBracket} />}
+                onClick={() => {
+                  navigate("/login");
+                }}
               >
                 Log out
               </Button>
