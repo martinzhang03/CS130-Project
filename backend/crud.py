@@ -145,3 +145,28 @@ async def insert_assignments(db: asyncpg.Connection, data: schemas.TaskCreate, i
 
     stmt = await db.prepare(query)
     await stmt.executemany(zip(data.assignees, [id]*len(data.assignees)))
+
+async def group_tasks_by_members(db: asyncpg.Connection):
+    query = """
+        SELECT a.user_id, t.id AS task_id, t.title, t.description, t.due_datetime, t.created_at, t.dependencies
+        FROM tasks t
+        JOIN assignments a ON t.id = a.task_id
+        ORDER BY a.user_id;
+    """
+    rows = await db.fetch(query)
+    tasks_by_member = {}
+    for row in rows:
+        member_id = row["user_id"]
+        if member_id not in tasks_by_member:
+            tasks_by_member[member_id] = []
+        task = {
+            "task_id": row["task_id"],
+            "title": row["title"],
+            "description": row["description"],
+            # 格式化时间为 ISO 格式字符串，若为空则返回 None
+            "due_datetime": row["due_datetime"].isoformat() if row["due_datetime"] else None,
+            "created_at": row["created_at"].isoformat() if row["created_at"] else None,
+            "dependencies": row["dependencies"],
+        }
+        tasks_by_member[member_id].append(task)
+    return tasks_by_member
