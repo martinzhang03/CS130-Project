@@ -21,4 +21,4 @@ class Settings(BaseSettings):
     SMTP_SERVER: str = "smtp.gmail.com"
     SMTP_PORT: int = 465
     SENDER_EMAIL: str = "martinzhang0314@gmail.com"
-    SENDER_PASSWORD: str = "SOME_PASSWORD"
+    SENDER_PASSWORD: str = "llgn khgd hlec mumd"
