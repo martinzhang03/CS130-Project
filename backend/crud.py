@@ -61,24 +61,14 @@ async def insert_temp_user(db: asyncpg.Connection, email: str, salt: str, code: 
     Inserts or updates a temporary user in the PostgreSQL database.
     """
     try:
-        query = "SELECT id, user_type, password, salt, created_at FROM users WHERE email = $1 AND user_type = 'temp'"
-        user = await db.fetchrow(query, email)
-
-        if user:
-            update_query = """
-                UPDATE users 
-                SET password = $1, created_at = $2, salt = $3, login_at = $4
-                WHERE id = $5
-            """
-            await db.execute(update_query, code, datetime.datetime.now(), salt, datetime.datetime.now(), user['id'])
-            return True
-        else:
-            insert_query = """
-                INSERT INTO users (email, salt, password, created_at, user_type, login_at, login)
-                VALUES ($1, $2, $3, $4, 'temp', $5, FALSE)
-            """
-            await db.execute(insert_query, email, salt, code, datetime.datetime.now(), datetime.datetime.now())
-            return True
+        # query = "SELECT id, user_type, password, salt, created_at FROM users WHERE email = $1 AND user_type = 'formal'"
+#         user = await db.fetchrow(query, email)
+        insert_query = """
+            INSERT INTO users (email, salt, password, created_at, user_type, login_at, login)
+            VALUES ($1, $2, $3, $4, 'formal', $5, FALSE)
+        """
+        await db.execute(insert_query, email, salt, code, datetime.datetime.now(), datetime.datetime.now())
+        return True
 
     except Exception as e:
         print(f"Error inserting/updating user: {e}")

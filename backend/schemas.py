@@ -13,7 +13,11 @@ class TaskCreate(BaseModel):
     description: str = Field(..., title="Description", max_length=1000)
 
 class UserEmail(BaseModel):
+    first_name: str
+    user_name: str
     email: str
+    password: str
+    
 
 class UserConfirmation(BaseModel):
     email: str
