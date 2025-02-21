@@ -3,9 +3,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button, Space } from "antd";
 import dayjs from "dayjs";
 import React, { useState } from "react";
-import AddTask from "./components/AddTask";
+import ModifyTask from "./components/ModifyTask";
 import TaskItem from "./components/TaskItem";
 import TeamChat from "../../components/TeamChat";
+import Flow from "./components/TaskFlow";
 
 const taskList = [
   {
@@ -119,7 +120,7 @@ const taskList = [
 ];
 
 const DashBoard = () => {
-  const [addTask, setAddTask] = useState(false);
+  const [editTask, setEditTask] = useState(false);
 
   return (
     <>
@@ -187,7 +188,7 @@ const DashBoard = () => {
               </div>
               <Button
                 onClick={() => {
-                  setAddTask(true);
+                  setEditTask(true);
                 }}
                 icon={<FontAwesomeIcon icon={faPlus} />}
                 type="primary"
@@ -203,7 +204,7 @@ const DashBoard = () => {
                 backgroundColor: "var(--bgColor)",
                 borderRadius: 5,
                 padding: 15,
-                overflowX: "scroll",
+                overflowX: "auto",
               }}
             >
               <Space>
@@ -217,11 +218,14 @@ const DashBoard = () => {
             <div
               style={{
                 flex: 1,
-                backgroundColor: "var(--bgColor)",
-                marginTop: 15,
+                marginTop: 25,
                 borderRadius: 5,
               }}
-            ></div>
+            >
+            <div style={{
+              width: "100%",
+              height: "100%"
+            }}><Flow /></div></div>
           </div>
           <div
             style={{
@@ -251,10 +255,10 @@ const DashBoard = () => {
         </div>
       </div>
 
-      <AddTask
-        open={addTask}
+      <ModifyTask
+        open={editTask}
         onCancel={() => {
-          setAddTask(false);
+          setEditTask(false);
         }}
       />
     </>

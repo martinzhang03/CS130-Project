@@ -29,11 +29,11 @@ const Layout = () => {
       key: "tasks",
       icon: <FontAwesomeIcon icon={faListCheck} />,
     },
-    {
-      label: "My Team",
-      key: "teams",
-      icon: <FontAwesomeIcon icon={faPeopleGroup} />,
-    },
+    // {
+    //   label: "My Team",
+    //   key: "teams",
+    //   icon: <FontAwesomeIcon icon={faPeopleGroup} />,
+    // },
     {
       label: "Task History",
       key: "taskhistory",
