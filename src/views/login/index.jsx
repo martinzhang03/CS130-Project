@@ -1,7 +1,7 @@
 import frameImg from "@/assets/frame.png";
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Button, Checkbox, Flex, Form, Input } from "antd";
+import { Button, Checkbox, Flex, Form, Input, message } from "antd";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchLogin } from "../../api/user";
@@ -9,27 +9,34 @@ import { fetchLogin } from "../../api/user";
 const Login = () => {
   const navigate = useNavigate();
   const [form] = Form.useForm();
+  const [messageApi, contextHolder] = message.useMessage();
 
   const clickLogin = () => {
-    form.validateFields().then((vals) => {
-      console.log(vals)
-      if(vals.remember) {
-        // Todo 
-        // save user info
-      }
-      fetchLogin({
-        email: vals.email,
-        password: vals.password
-      }).then(res => {
-        console.log(res)
-      }).catch((err) => {
-        console.log(err)
+    form
+      .validateFields()
+      .then((vals) => {
+        console.log(vals);
+        if (vals.remember) {
+          // Todo
+          // save user info
+        }
+        fetchLogin({
+          email: vals.email,
+          password: vals.password,
+        })
+          .then((res) => {
+            console.log(res);
+            messageApi.success("Success");
+            navigate("/dashboard");
+          })
+          .catch(() => {});
       })
-    }).catch(()=> {})
-  }
+      .catch(() => {});
+  };
 
   return (
     <>
+      {contextHolder}
       <div
         style={{
           width: "100vw",
@@ -115,16 +122,26 @@ const Login = () => {
           </div>
 
           <Form form={form} autoComplete="off">
-            <Form.Item name="email" rules={[{
-              required: true,
-              message: "Please Enter Your Email Address"
-            }]}>
+            <Form.Item
+              name="email"
+              rules={[
+                {
+                  required: true,
+                  message: "Please Enter Your Email Address",
+                },
+              ]}
+            >
               <Input placeholder="Email address" />
             </Form.Item>
-            <Form.Item name="password" rules={[{
-              required: true,
-              message: 'Please Enter Your Password'
-            }]}>
+            <Form.Item
+              name="password"
+              rules={[
+                {
+                  required: true,
+                  message: "Please Enter Your Password",
+                },
+              ]}
+            >
               <Input.Password placeholder="Password" />
             </Form.Item>
             <Form.Item>

@@ -2,23 +2,31 @@ import { Space } from "antd";
 import React from "react";
 import TaskItem from "../TaskItem";
 
-const TaskStatusBox = ({ infos }) => {
+const bgColorMap = {
+  wait: "#e3e3e3",
+  progress: "#108ee9b8",
+  review: "#2db7f5b8",
+  done: "#87d068b8",
+};
+
+const TaskStatusBox = ({ infos, status = "wait" }) => {
   return (
     <>
       <div
         style={{
           flex: 1,
           height: "100%",
-          backgroundColor: "var(--bgColor)",
+          // backgroundColor: "var(--bgColor)",
           borderRadius: 5,
           display: "flex",
           flexDirection: "column",
+          backgroundColor: bgColorMap[status],
         }}
       >
         <div
           style={{
             fontSize: 14,
-            color: "rgba(105, 91, 91, 1)",
+            color: "#fff",
             fontWeight: 500,
             textAlign: "center",
             padding: 8,
