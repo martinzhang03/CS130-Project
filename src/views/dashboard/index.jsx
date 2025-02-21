@@ -6,6 +6,7 @@ import React, { useState } from "react";
 import AddTask from "./components/AddTask";
 import TaskItem from "./components/TaskItem";
 import TeamChat from "../../components/TeamChat";
+import Flow from "./components/TaskFlow";
 
 const taskList = [
   {
@@ -203,7 +204,7 @@ const DashBoard = () => {
                 backgroundColor: "var(--bgColor)",
                 borderRadius: 5,
                 padding: 15,
-                overflowX: "scroll",
+                overflowX: "auto",
               }}
             >
               <Space>
@@ -217,11 +218,14 @@ const DashBoard = () => {
             <div
               style={{
                 flex: 1,
-                backgroundColor: "var(--bgColor)",
-                marginTop: 15,
+                marginTop: 25,
                 borderRadius: 5,
               }}
-            ></div>
+            >
+            <div style={{
+              width: "100%",
+              height: "100%"
+            }}><Flow /></div></div>
           </div>
           <div
             style={{
