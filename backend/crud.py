@@ -56,7 +56,7 @@ async def find_existing_user(db: asyncpg.Connection, key: str, query: str = "for
         return False, "", ""
     
 
-async def insert_temp_user(db: asyncpg.Connection, email: str, salt: str, code: str) -> bool:
+async def insert_temp_user(db: asyncpg.Connection, email: str, salt: str, code: str, username: str) -> bool:
     """
     Inserts or updates a temporary user in the PostgreSQL database.
     """
@@ -64,10 +64,10 @@ async def insert_temp_user(db: asyncpg.Connection, email: str, salt: str, code: 
         # query = "SELECT id, user_type, password, salt, created_at FROM users WHERE email = $1 AND user_type = 'formal'"
 #         user = await db.fetchrow(query, email)
         insert_query = """
-            INSERT INTO users (email, salt, password, created_at, user_type, login_at, login)
-            VALUES ($1, $2, $3, $4, 'formal', $5, FALSE)
+            INSERT INTO users (email, salt, password, created_at, user_type, login_at, login, username)
+            VALUES ($1, $2, $3, $4, 'formal', $5, TRUE, $6)
         """
-        await db.execute(insert_query, email, salt, code, datetime.datetime.now(), datetime.datetime.now())
+        await db.execute(insert_query, email, salt, code, datetime.datetime.now(), datetime.datetime.now(), username)
         return True
 
     except Exception as e:
@@ -76,7 +76,7 @@ async def insert_temp_user(db: asyncpg.Connection, email: str, salt: str, code: 
     
 async def user_login(db: asyncpg.Connection, email: str):
     query = """
-    SELECT id, username, email, user_type, login, login_at, 
+    SELECT id, username, email, user_type, login, login_at
     FROM users 
     WHERE email = $1 AND user_type = 'formal'
     """
@@ -153,7 +153,7 @@ async def group_tasks_by_members(db: asyncpg.Connection):
             "task_id": row["task_id"],
             "title": row["title"],
             "description": row["description"],
-            # ¸ñÊ½»¯Ê±¼äÎª ISO ¸ñÊ½×Ö·û´®£¬ÈôÎª¿ÕÔò·µ»Ø None
+            # ï¿½ï¿½Ê½ï¿½ï¿½Ê±ï¿½ï¿½Îª ISO ï¿½ï¿½Ê½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ò·µ»ï¿½ None
             "due_datetime": row["due_datetime"].isoformat() if row["due_datetime"] else None,
             "created_at": row["created_at"].isoformat() if row["created_at"] else None,
             "dependencies": row["dependencies"],
