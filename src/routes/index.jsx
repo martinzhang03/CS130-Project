@@ -1,4 +1,4 @@
-import { lazy } from "react";
+import { lazy, Suspense } from "react";
 import { createBrowserRouter } from "react-router-dom";
 import Layout from "../components/Layout";
 
@@ -13,15 +13,15 @@ const UserInfo = lazy(() => import("@/views/userinfo"));
 const routes = createBrowserRouter([
   {
     path: "/login",
-    element: <Login />,
+    element:<Suspense  fallback={null}><Login /></Suspense> ,
   },
   {
     path: "/register",
-    element: <Register />,
+    element:<Suspense fallback={null}><Register /></Suspense> ,
   },
   {
     path: "/",
-    element: <Layout />,
+    element:<Suspense  fallback={null}><Layout /></Suspense>  ,
     children: [
       {
         path: "dashboard",
