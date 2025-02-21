@@ -13,15 +13,27 @@ const UserInfo = lazy(() => import("@/views/userinfo"));
 const routes = createBrowserRouter([
   {
     path: "/login",
-    element:<Suspense  fallback={null}><Login /></Suspense> ,
+    element: (
+      <Suspense fallback={null}>
+        <Login />
+      </Suspense>
+    ),
   },
   {
     path: "/register",
-    element:<Suspense fallback={null}><Register /></Suspense> ,
+    element: (
+      <Suspense fallback={null}>
+        <Register />
+      </Suspense>
+    ),
   },
   {
     path: "/",
-    element:<Suspense  fallback={null}><Layout /></Suspense>  ,
+    element: (
+      <Suspense fallback={null}>
+        <Layout />
+      </Suspense>
+    ),
     children: [
       {
         path: "dashboard",

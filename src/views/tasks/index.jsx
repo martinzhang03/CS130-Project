@@ -9,6 +9,7 @@ const taskInfos = [
   {
     key: "wait",
     label: "Backlog",
+
     tasks: [
       {
         taskId: 1,
@@ -55,6 +56,7 @@ const taskInfos = [
   {
     key: "progress",
     label: "In Progress",
+
     tasks: [
       {
         taskId: 3,
@@ -194,7 +196,13 @@ const Tasks = () => {
               }}
             >
               {taskInfos.map((infos) => {
-                return <TaskStatusBox key={infos.key} infos={infos} />;
+                return (
+                  <TaskStatusBox
+                    key={infos.key}
+                    infos={infos}
+                    status={infos.key}
+                  />
+                );
               })}
             </div>
           </div>
