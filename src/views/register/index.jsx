@@ -4,10 +4,22 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button, Checkbox, Col, Form, Input, Row } from "antd";
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { fetchRegister } from "../../api/user";
 
 const Register = () => {
   const navigate = useNavigate();
   const [form] = Form.useForm();
+
+  const clickSubmit = () => {
+    form.validateFields().then(vals => {
+      console.log(vals)
+      fetchRegister(vals).then(res => {
+        console.log(res)
+      }).catch(() => {})
+    }).catch(() => {})
+  }
+
+
   return (
     <>
       <div
@@ -38,6 +50,7 @@ const Register = () => {
             top: "50%",
             transform: "translateX(-50%) translateY(-50%)",
             width: "30%",
+            maxWidth: 680,
             border: "1px solid rgba(208, 148, 148, 0.4)",
             boxShadow: "2px 2px 4px 0px rgba(0, 0, 0, 0.25)",
             borderRadius: 10,
@@ -56,7 +69,6 @@ const Register = () => {
               style={{
                 flex: 1,
                 display: "flex",
-
                 flexDirection: "column",
                 justifyContent: "space-between",
               }}
@@ -97,23 +109,45 @@ const Register = () => {
           <Form form={form} autoComplete="off">
             <Row gutter={16}>
               <Col span={12}>
-                <Form.Item name="fullName">
+                <Form.Item name="fullName" rules={[{
+                  required: true,
+                  message: "Please Enter Full Name"
+                }]}>
                   <Input placeholder="Full Name" />
                 </Form.Item>
               </Col>
               <Col span={12}>
-                <Form.Item name="userName">
+                <Form.Item name="userName" rules={[{
+                  required: true,
+                  message: 'Please Enter User Name'
+                }]}>
                   <Input placeholder="User Name" />
                 </Form.Item>
               </Col>
             </Row>
-            <Form.Item name="email">
+            <Form.Item name="email" rules={[{
+              required: true,
+              message: 'Please Enter Email'
+            }]}>
               <Input placeholder="Email address" />
             </Form.Item>
-            <Form.Item name="pwd">
+            <Form.Item name="password" rules={[{
+              required: true,
+              message: 'Please Enter Password'
+            }]}>
               <Input.Password placeholder="Password" />
             </Form.Item>
-            <Form.Item name="confirmpwd">
+            <Form.Item name="confirmpwd"  dependencies={['password']} rules={[{
+              required: true,
+              message: "Please Enter Confirm Password"
+            },({ getFieldValue }) => ({
+              validator(_, value) {
+                if (!value || getFieldValue('password') === value) {
+                  return Promise.resolve();
+                }
+                return Promise.reject(new Error('The new password that you entered do not match!'));
+              },
+            }),]}>
               <Input.Password placeholder="Confirm Password" />
             </Form.Item>
             <Form.Item name="remember" valuePropName="checked">
@@ -127,6 +161,7 @@ const Register = () => {
             iconPosition="end"
             block
             type="primary"
+            onClick={clickSubmit}
           >
             Create Account
           </Button>

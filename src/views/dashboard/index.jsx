@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button, Space } from "antd";
 import dayjs from "dayjs";
 import React, { useState } from "react";
-import AddTask from "./components/AddTask";
+import ModifyTask from "./components/ModifyTask";
 import TaskItem from "./components/TaskItem";
 import TeamChat from "../../components/TeamChat";
 import Flow from "./components/TaskFlow";
@@ -120,7 +120,7 @@ const taskList = [
 ];
 
 const DashBoard = () => {
-  const [addTask, setAddTask] = useState(false);
+  const [editTask, setEditTask] = useState(false);
 
   return (
     <>
@@ -188,7 +188,7 @@ const DashBoard = () => {
               </div>
               <Button
                 onClick={() => {
-                  setAddTask(true);
+                  setEditTask(true);
                 }}
                 icon={<FontAwesomeIcon icon={faPlus} />}
                 type="primary"
@@ -255,10 +255,10 @@ const DashBoard = () => {
         </div>
       </div>
 
-      <AddTask
-        open={addTask}
+      <ModifyTask
+        open={editTask}
         onCancel={() => {
-          setAddTask(false);
+          setEditTask(false);
         }}
       />
     </>

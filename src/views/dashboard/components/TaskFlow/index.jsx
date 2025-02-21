@@ -241,7 +241,7 @@ const Flow = () => {
                   (dateScroll?.left ? dateScroll?.left : 0)
                 }px`,
                 width: 1,
-                height: wrapSize?.height - dateHeight,
+                height: wrapSize?.height ? wrapSize?.height - dateHeight : '100%',
                 backgroundColor: "#B6B6B6",
               }}
             ></div>
@@ -289,7 +289,7 @@ const Flow = () => {
               key={`time_split_${index}`}
               style={{
                 position: "absolute",
-                width: wrapSize?.width - 60,
+                width: wrapSize?.width ? wrapSize?.width - 60 : '100%',
                 height: 1,
                 backgroundImage:
                   "linear-gradient(to right, #C1C0C099 50%, transparent 50%)",
