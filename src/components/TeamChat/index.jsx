@@ -46,7 +46,7 @@ const TeamChat = () => {
                 }}
               ></Button>
             }
-            placeholder="Work hard,paly harder"
+            placeholder="Work hard,play harder"
           />
         </div>
       </div>
