@@ -10,7 +10,7 @@ router = APIRouter(
     tags=["tasks"]
 )
 
-@router.post("/", response_model=schemas.TaskCreate)
+@router.post("/", response_model=schemas.TaskCreate, summary="Upload task to database")
 async def create_task(data: schemas.TaskCreate, db: asyncpg.Connection = Depends(get_db)):
     try:
         async with db.transaction():
