@@ -48,7 +48,7 @@ async def get_task_mapping(db: asyncpg.Connection = Depends(get_db)):
             detail=f"An error occurred: {str(e)}"
         )
 
-@router.get("/{user_id}", response_model=schemas.TaskUserMap, summary="Fetch all tasks assigned to a specific user")
+@router.get("/user_id/{user_id}", response_model=schemas.TaskUserMap, summary="Fetch all tasks assigned to a specific user")
 async def get_user_tasks(user_id: int, db: asyncpg.Connection = Depends(get_db)):
     try:
         task_mapping = await select_tasks_where_user(db, user_id)
