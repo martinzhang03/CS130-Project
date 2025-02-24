@@ -2,7 +2,7 @@ import { faCalendar, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button, Space } from "antd";
 import dayjs from "dayjs";
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import ModifyTask from "./components/ModifyTask";
 import TaskItem from "./components/TaskItem";
 import TeamChat from "../../components/TeamChat";
@@ -222,10 +222,15 @@ const DashBoard = () => {
                 borderRadius: 5,
               }}
             >
-            <div style={{
-              width: "100%",
-              height: "100%"
-            }}><Flow /></div></div>
+              <div
+                style={{
+                  width: "100%",
+                  height: "100%",
+                }}
+              >
+                <Flow />
+              </div>
+            </div>
           </div>
           <div
             style={{
