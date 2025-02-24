@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
 import asyncpg
 import datetime
 import random
@@ -159,6 +159,16 @@ def db_task_to_taskfetch(row: asyncpg.Record) -> schemas.TaskFetch:
         created_at = row["created_at"],
         dependencies = row["dependencies"],
     )
+
+def rows_to_taskusermap(rows: List[asyncpg.Record]) -> schemas.TaskUserMap:
+    task_mapping = defaultdict(list)
+    for row in rows:
+        user_id = row["user_id"]
+        task = db_task_to_taskfetch(row)
+        task_mapping[user_id].append(task)
+
+    return schemas.TaskUserMap(user_tasks = task_mapping) 
+
 async def select_tasks_by_user(db: asyncpg.Connection) -> schemas.TaskUserMap:
     query = """
         SELECT a.user_id, t.id AS task_id, t.title, t.description, t.start_datetime, t.due_datetime, t.created_at, t.dependencies
@@ -167,11 +177,18 @@ async def select_tasks_by_user(db: asyncpg.Connection) -> schemas.TaskUserMap:
         ORDER BY a.user_id;
     """
     rows = await db.fetch(query)
-    task_mapping = defaultdict(list)
-    for row in rows:
-        user_id = row["user_id"]
-        task = db_task_to_taskfetch(row)
-        task_mapping[user_id].append(task)
+    result = rows_to_taskusermap(rows)
 
-    result = schemas.TaskUserMap(user_tasks = task_mapping) 
+    return result
+
+async def select_tasks_where_user(db: asyncpg.Connection, user_id: int) -> schemas.TaskUserMap:
+    query = """
+        SELECT a.user_id, t.id AS task_id, t.title, t.description, t.start_datetime, t.due_datetime, t.created_at, t.dependencies
+        FROM tasks t
+        JOIN assignments a ON t.id = a.task_id
+        WHERE a.user_id = $1
+    """
+    rows = await db.fetch(query, user_id)
+    result = rows_to_taskusermap(rows)
+
     return result

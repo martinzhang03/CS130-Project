@@ -1,7 +1,7 @@
 from datetime import datetime
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, status
-from crud import insert_assignments, insert_task, select_tasks_by_user
+from crud import insert_assignments, insert_task, select_tasks_by_user, select_tasks_where_user
 from database import get_db
 import schemas
 
@@ -9,10 +9,6 @@ router = APIRouter(
     prefix="/tasks",
     tags=["tasks"]
 )
-
-@router.get("/{user_id}")
-async def get_user_tasks(user_id: str):
-    return {"uid": user_id}
 
 @router.post("/", response_model=schemas.TaskCreate)
 async def create_task(data: schemas.TaskCreate, db: asyncpg.Connection = Depends(get_db)):
@@ -40,6 +36,22 @@ async def create_task(data: schemas.TaskCreate, db: asyncpg.Connection = Depends
 async def get_task_mapping(db: asyncpg.Connection = Depends(get_db)):
     try:
         task_mapping = await select_tasks_by_user(db)
+        return task_mapping
+    except asyncpg.PostgresError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error: {str(e)}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"An error occurred: {str(e)}"
+        )
+
+@router.get("/{user_id}", response_model=schemas.TaskUserMap, summary="Fetch all tasks assigned to a specific user")
+async def get_user_tasks(user_id: int, db: asyncpg.Connection = Depends(get_db)):
+    try:
+        task_mapping = await select_tasks_where_user(db, user_id)
         return task_mapping
     except asyncpg.PostgresError as e:
         raise HTTPException(
