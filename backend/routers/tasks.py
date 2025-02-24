@@ -63,3 +63,19 @@ async def get_user_tasks(user_id: int, db: asyncpg.Connection = Depends(get_db))
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"An error occurred: {str(e)}"
         )
+
+@router.delete("/user_id/{user_id}", response_model=schemas.TaskUserMap, summary="Delete user from all assigned tasks")
+async def delete_user_from_tasks(user_id: int, db: asyncpg.Connection = Depends(get_db)):
+    pass
+
+@router.get("/task_id/{task_id}", summary="Fetch task by task id")
+async def get_task_by_task_id(task_id: int, db:asyncpg.Connection = Depends(get_db)):
+    pass
+
+@router.put("/task_id/{task_id}", summary="Edit task with given task id")
+async def put_task_by_task_id(task_id: int, db:asyncpg.Connection = Depends(get_db)):
+    pass
+
+@router.delete("/task_id/{task_id}", summary="Delete task with given task id")
+async def delete_task_by_task_id(task_id: int, db:asyncpg.Connection = Depends(get_db)):
+    pass
