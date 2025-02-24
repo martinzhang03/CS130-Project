@@ -27,7 +27,11 @@ class TaskUserMap(BaseModel):
     user_tasks: Dict[int, List[TaskFetch]] = Field(..., title="User Task Map", description="Mapping of user IDs to their assigned tasks")
 
 class UserEmail(BaseModel):
+    first_name: str
+    user_name: str
     email: str
+    password: str
+    
 
 class UserConfirmation(BaseModel):
     email: str

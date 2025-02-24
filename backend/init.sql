@@ -5,8 +5,7 @@ CREATE TABLE users (
     salt TEXT NOT NULL,
     password TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    user_type VARCHAR(20) DEFAULT 'temp',
-    ip INET,
+    user_type VARCHAR(20) DEFAULT 'formal',
     login_at TIMESTAMP,
     login BOOLEAN DEFAULT FALSE
 );
