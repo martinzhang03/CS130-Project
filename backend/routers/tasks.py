@@ -1,7 +1,7 @@
 from datetime import datetime
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, status
-from crud import insert_assignments, insert_task, group_tasks_by_members
+from crud import insert_assignments, insert_task, select_tasks_by_user
 from database import get_db
 import schemas
 
@@ -36,7 +36,18 @@ async def create_task(data: schemas.TaskCreate, db: asyncpg.Connection = Depends
             detail=f"An error occurred: {str(e)}"
         )
 
-@router.get("/group-by-members", summary="Tasks grouped by member")
-async def get_tasks_grouped_by_members(db: asyncpg.Connection = Depends(get_db)):
-    grouped_tasks = await group_tasks_by_members(db)
-    return grouped_tasks
+@router.get("/", response_model=schemas.TaskUserMap, summary="Mapping of users to tasks")
+async def get_task_mapping(db: asyncpg.Connection = Depends(get_db)):
+    try:
+        task_mapping = await select_tasks_by_user(db)
+        return task_mapping
+    except asyncpg.PostgresError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error: {str(e)}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"An error occurred: {str(e)}"
+        )
