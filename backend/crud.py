@@ -1,4 +1,5 @@
-from typing import Optional, Tuple
+from collections import defaultdict
+from typing import List, Optional, Tuple
 import asyncpg
 import datetime
 import random
@@ -108,17 +109,19 @@ async def insert_task(db: asyncpg.Connection, data: schemas.TaskCreate) -> Optio
     query = """
         INSERT INTO tasks (
             title,
+            start_datetime,
             due_datetime,
             description,
             dependencies
         ) VALUES (
-            $1,$2,$3,$4
+            $1,$2,$3,$4,$5
         ) RETURNING id
     """
 
     stmt = await db.prepare(query)
     return await stmt.fetchval(
             data.task_name,
+            datetime.datetime.combine(data.start_date, data.start_time),
             datetime.datetime.combine(data.due_date, data.due_time),
             data.description,
             data.dependencies 
@@ -136,27 +139,46 @@ async def insert_assignments(db: asyncpg.Connection, data: schemas.TaskCreate, i
     stmt = await db.prepare(query)
     await stmt.executemany(zip(data.assignees, [id]*len(data.assignees)))
 
-async def group_tasks_by_members(db: asyncpg.Connection):
+def db_task_to_taskfetch(row: asyncpg.Record) -> schemas.TaskFetch:
+    return schemas.TaskFetch(
+        task_id = row["task_id"],
+        task_name = row["title"],
+        description = row["description"],
+        start_datetime = row["start_datetime"],
+        due_datetime = row["due_datetime"],
+        created_at = row["created_at"],
+        dependencies = row["dependencies"],
+    )
+
+def rows_to_taskusermap(rows: List[asyncpg.Record]) -> schemas.TaskUserMap:
+    task_mapping = defaultdict(list)
+    for row in rows:
+        user_id = row["user_id"]
+        task = db_task_to_taskfetch(row)
+        task_mapping[user_id].append(task)
+
+    return schemas.TaskUserMap(user_tasks = task_mapping) 
+
+async def select_tasks_by_user(db: asyncpg.Connection) -> schemas.TaskUserMap:
     query = """
-        SELECT a.user_id, t.id AS task_id, t.title, t.description, t.due_datetime, t.created_at, t.dependencies
+        SELECT a.user_id, t.id AS task_id, t.title, t.description, t.start_datetime, t.due_datetime, t.created_at, t.dependencies
         FROM tasks t
         JOIN assignments a ON t.id = a.task_id
         ORDER BY a.user_id;
     """
     rows = await db.fetch(query)
-    tasks_by_member = {}
-    for row in rows:
-        member_id = row["user_id"]
-        if member_id not in tasks_by_member:
-            tasks_by_member[member_id] = []
-        task = {
-            "task_id": row["task_id"],
-            "title": row["title"],
-            "description": row["description"],
-            # ��ʽ��ʱ��Ϊ ISO ��ʽ�ַ�������Ϊ���򷵻� None
-            "due_datetime": row["due_datetime"].isoformat() if row["due_datetime"] else None,
-            "created_at": row["created_at"].isoformat() if row["created_at"] else None,
-            "dependencies": row["dependencies"],
-        }
-        tasks_by_member[member_id].append(task)
-    return tasks_by_member
+    result = rows_to_taskusermap(rows)
+
+    return result
+
+async def select_tasks_where_user(db: asyncpg.Connection, user_id: int) -> schemas.TaskUserMap:
+    query = """
+        SELECT a.user_id, t.id AS task_id, t.title, t.description, t.start_datetime, t.due_datetime, t.created_at, t.dependencies
+        FROM tasks t
+        JOIN assignments a ON t.id = a.task_id
+        WHERE a.user_id = $1
+    """
+    rows = await db.fetch(query, user_id)
+    result = rows_to_taskusermap(rows)
+
+    return result
