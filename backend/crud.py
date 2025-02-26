@@ -159,6 +159,16 @@ def rows_to_taskusermap(rows: List[asyncpg.Record]) -> schemas.TaskUserMap:
 
     return schemas.TaskUserMap(user_tasks = task_mapping) 
 
+async def select_task_dependencies(db: asyncpg.Connection, task_id: int) -> List[schemas.TaskFetch]:
+    query = """
+        SELECT id AS task_id, title, description, start_datetime, due_datetime, created_at, dependencies
+        FROM tasks
+        WHERE dependencies @> ARRAY[$1]::integer[];
+    """
+    rows = await db.fetch(query, task_id)
+    
+    return [db_task_to_taskfetch(row) for row in rows]
+
 async def select_tasks_by_user(db: asyncpg.Connection) -> schemas.TaskUserMap:
     query = """
         SELECT a.user_id, t.id AS task_id, t.title, t.description, t.start_datetime, t.due_datetime, t.created_at, t.dependencies

@@ -1,7 +1,7 @@
 from datetime import datetime
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, status
-from crud import insert_assignments, insert_task, select_tasks_by_user, select_tasks_where_user
+from crud import insert_assignments, insert_task, select_tasks_by_user, select_tasks_where_user, select_task_dependencies
 from database import get_db
 import schemas
 
@@ -71,6 +71,26 @@ async def delete_user_from_tasks(user_id: int, db: asyncpg.Connection = Depends(
 @router.get("/task_id/{task_id}", summary="Fetch task by task id")
 async def get_task_by_task_id(task_id: int, db:asyncpg.Connection = Depends(get_db)):
     pass
+
+@router.get("/task_id/{task_id}", summary="Fetch dependencies by task id")
+async def get_dependencies_by_task_id(task_id: int, db:asyncpg.Connection = Depends(get_db)):
+    try:
+        dependencies = await select_task_dependencies(db, task_id)
+        if not dependencies:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="No dependencies found for this task"
+            )
+        return dependencies
+    
+    except asyncpg.PostgresError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Database error: {str(e)}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="smth weird happened"
+        )
+
 
 @router.put("/task_id/{task_id}", summary="Edit task with given task id")
 async def put_task_by_task_id(task_id: int, db:asyncpg.Connection = Depends(get_db)):
