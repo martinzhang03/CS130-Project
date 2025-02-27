@@ -15,8 +15,8 @@ class Settings(BaseSettings):
     HOST: str = 'http://127.0.0.1'
     DB_URL: str = "DATABASE_URL"
     JWT_EXPIRE_SECONDS: int = 60*60*8
-    # JWT_PUBLIC_KEY: str = load_key_from_file(r"public_key.pem", 'JWT_PUBLIC_KEY')
-    # JWT_PRIVATE_KEY: str = load_key_from_file(r"private_key.pem", 'JWT_PRIVATE_KEY')
+    JWT_PUBLIC_KEY: str = load_key_from_file(r"public_key.pem", 'JWT_PUBLIC_KEY')
+    JWT_PRIVATE_KEY: str = load_key_from_file(r"private_key.pem", 'JWT_PRIVATE_KEY')
 
     SMTP_SERVER: str = "smtp.gmail.com"
     SMTP_PORT: int = 465
