@@ -10,12 +10,12 @@ from config import Settings
 http_scheme = HTTPBearer()
 setting = Settings()
 
-def generate_token(user_id: str) -> str:
+def generate_token(email: str) -> str:
     payload = {
         "exp": int(time.time()) + setting.JWT_EXPIRE_SECONDS,
         "iss": "Jobs-Jr",
         "iat": int(time.time()),
-        "user_id": user_id,
+        "user_id": email,
     }
     # print(setting.JWT_PRIVATE_KEY)
     token = jwt.encode(payload=payload, key=setting.JWT_PRIVATE_KEY, algorithm="RS256")
@@ -29,8 +29,7 @@ def credentials_exception(detail: str = "Could not validate credentials") -> HTT
     )
 
 def check_authenticated(token: Optional[HTTPAuthorizationCredentials] = Depends(http_scheme)) -> dict:
-    # return check_jwt(token=token.credentials, audience="test")
-    return check_jwt(token=token, audience="test")
+    return check_jwt(token=token.credentials, audience="test")
 
 
 def check_jwt(token: str, audience: str = None, algorithms: str = 'RS256') -> dict:

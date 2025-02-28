@@ -87,7 +87,7 @@ async def user_login(db: asyncpg.Connection, email: str):
         if not user['login']:
             update_query = """
             UPDATE users 
-            SET login = TRUE, login_at = $1,
+            SET login = TRUE, login_at = $1
             WHERE id = $2
             """
             await db.execute(update_query, datetime.datetime.now(), user['id'])
@@ -95,12 +95,27 @@ async def user_login(db: asyncpg.Connection, email: str):
         else:
             update_query = """
             UPDATE users 
-            SET login = TRUE, login_at = $1, 
+            SET login = TRUE, login_at = $1
             WHERE id = $2
             """
             await db.execute(update_query, datetime.datetime.now(), user['id'])
             return user['id']
     return None
+
+async def check_login_status(conn: asyncpg.Connection, email: str) -> bool:
+    user = await conn.fetchrow("SELECT user_type, login, login_at FROM users WHERE email = $1", email)
+
+    if user:
+        login_at = user["login_at"]
+        
+        if login_at and isinstance(login_at, datetime.datetime):
+            if user["user_type"] == "formal" and user["login"] and datetime.datetime.now() - login_at < datetime.timedelta(hours=3):
+                await conn.execute("UPDATE users SET login_at = $1 WHERE email = $2", datetime.datetime.now(), email)
+                return True
+        
+        await conn.execute("UPDATE users SET login = FALSE WHERE email = $1", email)
+    
+    return False
 
 async def insert_task(db: asyncpg.Connection, data: schemas.TaskCreate) -> Optional[int]:
     """

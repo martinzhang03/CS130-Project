@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import asyncpg
 import datetime
 from database import *
@@ -13,6 +14,8 @@ router = APIRouter(
     prefix="/api/user",
     tags=["user"]
 )
+
+security = HTTPBearer()
 
 @router.post("/register")
 async def register_user(user: schemas.UserEmail, db: asyncpg.Connection = Depends(get_db)):
@@ -34,7 +37,7 @@ async def register_user(user: schemas.UserEmail, db: asyncpg.Connection = Depend
         if user_id is None: 
             return {"status": "fail", "message": "Some Error Occurred, please try again"}
         
-        token = auth.generate_token(str(user_id))
+        token = auth.generate_token(user.email)
         return {"status": "success", "message": "User Registered", "jwt_token": token}
 
     except Exception as e:
@@ -55,8 +58,24 @@ async def login_user(user: schemas.UserLogin, db: asyncpg.Connection = Depends(g
         if user_id is None: 
             return {"status": "fail", "message": "Email doesn't exist or incorrect password"}
             
-        token = auth.generate_token(str(user_id))
+        token = auth.generate_token(user.email)
         return {"status": "success", "message": "successfully logged in", "jwt_token": token}
     
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.post("/lists")
+async def user_lists(request: Request, token: HTTPAuthorizationCredentials = Depends(security), db: asyncpg.Connection = Depends(get_db)):
+    try:
+        payload = auth.check_authenticated(token)  # Removed await and pass the token object
+        email = payload.get("email")
+
+        status = await crud.check_login_status(db, email)
+        if not status:
+            return {"status": "fail", "message": "Please login again", "email": email}
+
+        users = await db.fetch("SELECT id, username FROM users;")
+        res = [{"id": user["id"], "username": user["username"]} for user in users]
+        return {"status": "success", "user_list": res}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
