@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import asyncpg
 import datetime
 from database import *
@@ -13,6 +14,8 @@ router = APIRouter(
     prefix="/api/user",
     tags=["user"]
 )
+
+security = HTTPBearer()
 
 @router.post("/register")
 async def register_user(user: schemas.UserEmail, db: asyncpg.Connection = Depends(get_db)):
@@ -60,3 +63,13 @@ async def login_user(user: schemas.UserLogin, db: asyncpg.Connection = Depends(g
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@router.post("/lists")
+async def user_lists(request: Request, token: HTTPAuthorizationCredentials = Depends(security), db: asyncpg.Connection = Depends(get_db)):
+    payload = await auth.check_authenticated(token.credentials)
+    user_id = payload.get("user_id")
+
+    query = "SELECT id, username FROM users;"
+    users = await db.fetch(query)
+
+    return [{"id": user["id"], "username": user["username"]} for user in users]
