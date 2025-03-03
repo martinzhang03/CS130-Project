@@ -8,11 +8,51 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button, Menu } from "antd";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Header from "../Header";
 
 import helpImg from "@/assets/help.png";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { atom } from "jotai";
+
+export const taskListsAtom = atom([
+  {
+    taskId: "1",
+    taskName: "Task A",
+    startTime: "2025-02-10 08:00:00",
+    endTime: "2025-02-10 10:00:00",
+    status: "review",
+    progress: 100,
+    dependency: "",
+  },
+  {
+    taskId: "2",
+    taskName: "Task B",
+    startTime: "2025-02-11 12:00:00",
+    endTime: "2025-02-11 13:00:00",
+    status: "review",
+    progress: 100,
+    dependency: "1",
+  },
+  {
+    taskId: "3",
+    taskName: "Task C",
+    startTime: "2025-02-13 09:00:00",
+    endTime: "2025-02-13 14:00:00",
+    status: "progress",
+    progress: 20,
+    dependency: "2",
+  },
+  {
+    taskId: "4",
+    taskName: "Task D",
+    startTime: "2025-02-14 15:00:00",
+    endTime: "2025-02-14 16:00:00",
+    status: "progress",
+    progress: 10,
+    dependency: "2",
+  },
+]);
 
 const Layout = () => {
   const location = useLocation();

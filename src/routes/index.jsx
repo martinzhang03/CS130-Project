@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import Layout from "../components/Layout";
 
 const Login = lazy(() => import("@/views/login"));
@@ -11,6 +11,10 @@ const Taskhistory = lazy(() => import("@/views/taskHistory"));
 const UserInfo = lazy(() => import("@/views/userinfo"));
 
 const routes = createBrowserRouter([
+  {
+    path: "/",
+    element: <Navigate to={"/login"} replace />,
+  },
   {
     path: "/login",
     element: (
@@ -28,7 +32,6 @@ const routes = createBrowserRouter([
     ),
   },
   {
-    path: "/",
     element: (
       <Suspense fallback={null}>
         <Layout />
@@ -36,11 +39,11 @@ const routes = createBrowserRouter([
     ),
     children: [
       {
-        path: "dashboard",
+        path: "/dashboard",
         element: <DashBoard />,
       },
       {
-        path: "tasks",
+        path: "/tasks",
         element: <Tasks />,
       },
       {
