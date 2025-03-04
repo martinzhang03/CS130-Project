@@ -1,7 +1,7 @@
 from datetime import datetime
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, status
-from crud import insert_assignments, insert_task, select_tasks_by_user, select_tasks_where_user, select_task_dependencies
+from crud import insert_assignments, insert_task, select_tasks_by_user, select_tasks_where_user, select_task_dependencies, select_task_by_task_id
 from database import get_db
 import schemas
 
@@ -70,7 +70,21 @@ async def delete_user_from_tasks(user_id: int, db: asyncpg.Connection = Depends(
 
 @router.get("/task_id/{task_id}", summary="Fetch task by task id")
 async def get_task_by_task_id(task_id: int, db:asyncpg.Connection = Depends(get_db)):
-    pass
+    try:
+        task = await select_task_by_task_id(db, task_id)
+        if task is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+        return task
+    except asyncpg.PostgresError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error: {str(e)}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"An error occurred: {str(e)}"
+        )
 
 @router.get("/task_id/{task_id}", summary="Fetch dependencies by task id")
 async def get_dependencies_by_task_id(task_id: int, db:asyncpg.Connection = Depends(get_db)):
@@ -84,11 +98,13 @@ async def get_dependencies_by_task_id(task_id: int, db:asyncpg.Connection = Depe
     
     except asyncpg.PostgresError as e:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Database error: {str(e)}"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+            detail=f"Database error: {str(e)}"
         )
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="smth weird happened"
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="smth weird happened"
         )
 
 
