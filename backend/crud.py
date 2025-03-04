@@ -77,43 +77,35 @@ async def insert_temp_user(db: asyncpg.Connection, email: str, salt: str, code: 
     
 async def user_login(db: asyncpg.Connection, email: str):
     query = """
-    SELECT id, username, email, user_type, login, login_at
-    FROM users 
+    SELECT id FROM users 
     WHERE email = $1 AND user_type = 'formal'
     """
     user = await db.fetchrow(query, email)
     
     if user:
-        if not user['login']:
-            update_query = """
-            UPDATE users 
-            SET login = TRUE, login_at = $1
-            WHERE id = $2
-            """
-            await db.execute(update_query, datetime.datetime.now(), user['id'])
-            return user['id']
-        else:
-            update_query = """
-            UPDATE users 
-            SET login = TRUE, login_at = $1
-            WHERE id = $2
-            """
-            await db.execute(update_query, datetime.datetime.now(), user['id'])
-            return user['id']
+        update_query = """
+        UPDATE users 
+        SET login = TRUE, login_at = $1
+        WHERE id = $2
+        """
+        await db.execute(update_query, datetime.datetime.now(), user['id'])
+        return user['id']
+    
     return None
 
-async def check_login_status(conn: asyncpg.Connection, email: str) -> bool:
-    user = await conn.fetchrow("SELECT user_type, login, login_at FROM users WHERE email = $1", email)
+async def check_login_status(conn: asyncpg.Connection, id: str) -> bool:
+    id = int(id)
+    user = await conn.fetchrow("SELECT user_type, login, login_at FROM users WHERE id = $1", id)
 
     if user:
         login_at = user["login_at"]
         
         if login_at and isinstance(login_at, datetime.datetime):
             if user["user_type"] == "formal" and user["login"] and datetime.datetime.now() - login_at < datetime.timedelta(hours=3):
-                await conn.execute("UPDATE users SET login_at = $1 WHERE email = $2", datetime.datetime.now(), email)
+                await conn.execute("UPDATE users SET login_at = $1 WHERE id = $2", datetime.datetime.now(), id)
                 return True
         
-        await conn.execute("UPDATE users SET login = FALSE WHERE email = $1", email)
+        await conn.execute("UPDATE users SET login = FALSE WHERE id = $1", id)
     
     return False
 
