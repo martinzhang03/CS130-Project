@@ -37,7 +37,7 @@ async def register_user(user: schemas.UserEmail, db: asyncpg.Connection = Depend
         if user_id is None: 
             return {"status": "fail", "message": "Some Error Occurred, please try again"}
         
-        token = auth.generate_token(user.email)
+        token = auth.generate_token(str(user_id))
         return {"status": "success", "message": "User Registered", "jwt_token": token}
 
     except Exception as e:
@@ -57,9 +57,9 @@ async def login_user(user: schemas.UserLogin, db: asyncpg.Connection = Depends(g
         user_id = await crud.user_login(db, user.email)
         if user_id is None: 
             return {"status": "fail", "message": "Email doesn't exist or incorrect password"}
-            
-        token = auth.generate_token(user.email)
-        return {"status": "success", "message": "successfully logged in", "jwt_token": token}
+        print(user_id)
+        token = auth.generate_token(str(user_id))
+        return {"status": "success", "message": "successfully logged in", "jwt_token": token, "user_id": user_id}
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -68,11 +68,11 @@ async def login_user(user: schemas.UserLogin, db: asyncpg.Connection = Depends(g
 async def user_lists(request: Request, token: HTTPAuthorizationCredentials = Depends(security), db: asyncpg.Connection = Depends(get_db)):
     try:
         payload = auth.check_authenticated(token)  # Removed await and pass the token object
-        email = payload.get("email")
+        id = payload.get("user_id")
 
-        status = await crud.check_login_status(db, email)
+        status = await crud.check_login_status(db, id)
         if not status:
-            return {"status": "fail", "message": "Please login again", "email": email}
+            return {"status": "fail", "message": "Please login again"}
 
         users = await db.fetch("SELECT id, username FROM users;")
         res = [{"id": user["id"], "username": user["username"]} for user in users]

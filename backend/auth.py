@@ -10,12 +10,12 @@ from config import Settings
 http_scheme = HTTPBearer()
 setting = Settings()
 
-def generate_token(email: str) -> str:
+def generate_token(user_id: str) -> str:
     payload = {
         "exp": int(time.time()) + setting.JWT_EXPIRE_SECONDS,
         "iss": "Jobs-Jr",
         "iat": int(time.time()),
-        "user_id": email,
+        "user_id": user_id,
     }
     # print(setting.JWT_PRIVATE_KEY)
     token = jwt.encode(payload=payload, key=setting.JWT_PRIVATE_KEY, algorithm="RS256")
