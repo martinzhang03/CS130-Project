@@ -11,7 +11,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
-    prefix="/api/user",
+    prefix="/user",
     tags=["user"]
 )
 
@@ -38,7 +38,7 @@ async def register_user(user: schemas.UserEmail, db: asyncpg.Connection = Depend
             return {"status": "fail", "message": "Some Error Occurred, please try again"}
         
         token = auth.generate_token(str(user_id))
-        return {"status": "success", "message": "User Registered", "jwt_token": token}
+        return {"status": "success", "message": "User Registered", "jwt_token": token, "user_id": user_id}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
