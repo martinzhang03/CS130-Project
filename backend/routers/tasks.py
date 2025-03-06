@@ -13,6 +13,9 @@ router = APIRouter(
 @router.post("/", response_model=schemas.TaskCreate, summary="Upload task to database")
 async def create_task(data: schemas.TaskCreate, db: asyncpg.Connection = Depends(get_db)):
     try:
+        if not data.assignees or len(data.assignees) == 0:
+            return {"status": "fail", "message": "A task must have at least one assignee"}
+
         async with db.transaction():
             task_id = await insert_task(db, data)
             if task_id is None:
