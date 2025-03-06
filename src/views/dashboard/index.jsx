@@ -162,7 +162,7 @@ const DashBoard = () => {
             style={{
               flex: 1,
               width: 0,
-              marginRight: 15,
+              // marginRight: 15,
               borderRadius: 5,
               backgroundColor: "#fff",
               padding: 15,
@@ -252,11 +252,12 @@ const DashBoard = () => {
           </div>
           <div
             style={{
+              display: "none",
               width: 300,
               height: "100%",
               borderRadius: 5,
               backgroundColor: "#fff",
-              display: "flex",
+              // display: "flex",
               padding: 15,
               flexDirection: "column",
             }}

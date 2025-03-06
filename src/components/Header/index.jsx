@@ -1,7 +1,14 @@
-import { Avatar } from "antd";
-import React from "react";
+import { faUser } from "@fortawesome/free-regular-svg-icons";
+import { faArrowRightFromBracket } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Avatar, Dropdown } from "antd";
+import React, { useState } from "react";
+import UserInfo from "../UserInfo";
+import { useNavigate } from "react-router-dom";
 
 const Header = () => {
+  const [editInfo, setEditInfo] = useState(false);
+  const navigate = useNavigate();
   return (
     <>
       <div
@@ -31,32 +38,50 @@ const Header = () => {
             justifyContent: "center",
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              color: "#fff",
+          <Dropdown
+            menu={{
+              items: [
+                {
+                  key: "userInfo",
+                  label: "My Info",
+                  icon: <FontAwesomeIcon icon={faUser} />,
+                },
+                {
+                  key: "logout",
+                  label: "Log Out",
+                  icon: <FontAwesomeIcon icon={faArrowRightFromBracket} />,
+                },
+              ],
+              onClick: ({ key }) => {
+                console.log(key);
+                if (key === "userInfo") {
+                  setEditInfo(true);
+                } else {
+                  localStorage.removeItem("tf_token");
+                  navigate("/login");
+                }
+              },
             }}
           >
             <Avatar
               style={{
                 backgroundColor: "#fde3cf",
                 color: "#f56a00",
-              }}
-            >
-              U
-            </Avatar>
-            <div
-              style={{
-                marginLeft: 5,
-                fontSize: 14,
+                cursor: "pointer",
               }}
             >
               Riny
-            </div>
-          </div>
+            </Avatar>
+          </Dropdown>
         </div>
       </div>
+
+      <UserInfo
+        open={editInfo}
+        onCancel={() => {
+          setEditInfo(false);
+        }}
+      />
     </>
   );
 };

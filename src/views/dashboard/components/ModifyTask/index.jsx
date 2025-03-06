@@ -4,6 +4,7 @@ import {
   DatePicker,
   Form,
   Input,
+  message,
   Modal,
   Row,
   Select,
@@ -22,6 +23,7 @@ const { TextArea } = Input;
 
 const ModifyTask = ({ open = false, taskId, onOk, onCancel }) => {
   const [form] = Form.useForm();
+  const [messageApi, contextHolder] = message.useMessage();
 
   const [users, setUsers] = useState([]);
 
@@ -50,16 +52,20 @@ const ModifyTask = ({ open = false, taskId, onOk, onCancel }) => {
           description: vals.description,
         };
         console.log(infos);
-        // fetchCreateTask(infos)
+        fetchCreateTask(infos)
+          .then((res) => {
+            console.log(res);
+            if (res?.status === "success") {
+              messageApi.success("Success");
+              _onCancel();
+            }
+          })
+          .catch(() => {});
+        // fetchUpdateTask(infos)
         //   .then((res) => {
         //     console.log(res);
         //   })
         //   .catch(() => {});
-        fetchUpdateTask(infos)
-          .then((res) => {
-            console.log(res);
-          })
-          .catch(() => {});
         // "task_id": 0,
         // "task_name": "string",
         // "start_date": "2025-03-04",
@@ -99,6 +105,7 @@ const ModifyTask = ({ open = false, taskId, onOk, onCancel }) => {
   }, [open]);
   return (
     <>
+      {contextHolder}
       <Modal
         title="Create Task"
         centered

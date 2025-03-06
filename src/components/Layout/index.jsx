@@ -74,16 +74,16 @@ const Layout = () => {
     //   key: "teams",
     //   icon: <FontAwesomeIcon icon={faPeopleGroup} />,
     // },
-    {
-      label: "Task History",
-      key: "taskhistory",
-      icon: <FontAwesomeIcon icon={faClockRotateLeft} />,
-    },
-    {
-      label: "My Info",
-      key: "userinfo",
-      icon: <FontAwesomeIcon icon={faAddressCard} />,
-    },
+    // {
+    //   label: "Task History",
+    //   key: "taskhistory",
+    //   icon: <FontAwesomeIcon icon={faClockRotateLeft} />,
+    // },
+    // {
+    //   label: "My Info",
+    //   key: "userinfo",
+    //   icon: <FontAwesomeIcon icon={faAddressCard} />,
+    // },
   ];
 
   const clickMenu = (path) => {
@@ -231,6 +231,7 @@ const Layout = () => {
                 block
                 icon={<FontAwesomeIcon icon={faArrowRightFromBracket} />}
                 onClick={() => {
+                  localStorage.removeItem("tf_token");
                   navigate("/login");
                 }}
               >

@@ -9,6 +9,7 @@ const Tasks = lazy(() => import("@/views/tasks"));
 const Teams = lazy(() => import("@/views/teams"));
 const Taskhistory = lazy(() => import("@/views/taskHistory"));
 const UserInfo = lazy(() => import("@/views/userinfo"));
+const ResetPwd = lazy(() => import("@/views/resetpwd"));
 
 const routes = createBrowserRouter([
   {
@@ -28,6 +29,14 @@ const routes = createBrowserRouter([
     element: (
       <Suspense fallback={null}>
         <Register />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/resetpwd",
+    element: (
+      <Suspense fallback={null}>
+        <ResetPwd />
       </Suspense>
     ),
   },

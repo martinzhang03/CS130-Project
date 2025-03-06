@@ -157,7 +157,7 @@ const Tasks = () => {
             style={{
               flex: 1,
               width: 0,
-              marginRight: 15,
+              // marginRight: 15,
               borderRadius: 5,
               backgroundColor: "#fff",
               padding: 15,
@@ -213,7 +213,8 @@ const Tasks = () => {
               height: "100%",
               borderRadius: 5,
               backgroundColor: "#fff",
-              display: "flex",
+              // display: "flex",
+              display: "none",
               padding: 15,
               flexDirection: "column",
             }}
