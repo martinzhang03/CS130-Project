@@ -208,6 +208,7 @@ async def select_tasks_where_user(db: asyncpg.Connection, user_id: int) -> schem
         WHERE a.user_id = $1
     """
     rows = await db.fetch(query, user_id)
+    print(f"result rows are {rows}")
     result = rows_to_taskusermap(rows)
 
     return result

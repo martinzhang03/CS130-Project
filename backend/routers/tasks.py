@@ -20,7 +20,7 @@ async def create_task(data: schemas.TaskCreate, db: asyncpg.Connection = Depends
             await insert_assignments(db, data, task_id)
 
         data.task_id = task_id
-        return {"status": "success", "data": data}
+        return data
     except asyncpg.PostgresError as e:
         return {"status": "fail", "message": f"Database error: {str(e)}"}
     except Exception as e:
@@ -30,7 +30,7 @@ async def create_task(data: schemas.TaskCreate, db: asyncpg.Connection = Depends
 async def get_task_mapping(db: asyncpg.Connection = Depends(get_db)):
     try:
         task_mapping = await select_tasks_by_user(db)
-        return {"status": "success", "task_mapping": task_mapping}
+        return task_mapping
     except asyncpg.PostgresError as e:
         return {"status": "fail", "message": f"Database error: {str(e)}"}
     except Exception as e:
@@ -40,7 +40,7 @@ async def get_task_mapping(db: asyncpg.Connection = Depends(get_db)):
 async def get_user_tasks(user_id: int, db: asyncpg.Connection = Depends(get_db)):
     try:
         task_mapping = await select_tasks_where_user(db, user_id)
-        return {"status": "success", "task_mapping": task_mapping}
+        return task_mapping
     except asyncpg.PostgresError as e:
         return {"status": "fail", "message": f"Database error: {str(e)}"}
     except Exception as e:
@@ -56,7 +56,7 @@ async def get_task_by_task_id(task_id: int, db:asyncpg.Connection = Depends(get_
         task = await select_task_by_task_id(db, task_id)
         if task is None:
             return {"status": "fail", "message": "Task not found"}
-        return {"status": "success", "task": task}
+        return task
     except asyncpg.PostgresError as e:
         return {"status": "fail", "message": f"Database error: {str(e)}"}
     except Exception as e:
@@ -68,7 +68,7 @@ async def get_dependencies_by_task_id(task_id: int, db:asyncpg.Connection = Depe
         dependencies = await select_task_dependencies(db, task_id)
         if not dependencies:
             return {"status": "fail", "message": "No dependencies found for this task"}
-        return {"status": "success", "dependencies": dependencies}
+        return dependencies
     
     except asyncpg.PostgresError as e:
         return {"status": "fail", "message": f"Database error: {str(e)}"}

@@ -3,6 +3,7 @@ from datetime import date, datetime, time
 from typing import Dict, List, Optional
 
 class TaskCreate(BaseModel):
+    status: str = Field(default="success", title="Response Status")
     task_id: Optional[int] = Field(None, title="Task Id", description="The unique ID of the task is only in API responses")
     task_name: str = Field(..., title="Task Name", min_length=1, max_length=255)
     start_date: date = Field(..., title="Start Date")
@@ -14,6 +15,7 @@ class TaskCreate(BaseModel):
     description: str = Field(..., title="Description", max_length=1000)
 
 class TaskFetch(BaseModel):
+    status: str = Field(default="success", title="Response Status")
     task_id: int = Field(..., title="Task Id", description="The unique ID of the task is only in API responses")
     task_name: str = Field(..., title="Task Name", min_length=1, max_length=255)
     start_datetime: datetime = Field(..., title="Start Datetime")
@@ -24,6 +26,7 @@ class TaskFetch(BaseModel):
     description: str = Field(..., title="Description", max_length=1000)
 
 class TaskUserMap(BaseModel):
+    status: str = Field(default="success", title="Response Status")
     user_tasks: Dict[int, List[TaskFetch]] = Field(..., title="User Task Map", description="Mapping of user IDs to their assigned tasks")
 
 class UserEmail(BaseModel):
