@@ -74,10 +74,21 @@ async def insert_temp_user(db: asyncpg.Connection, email: str, salt: str, code: 
     except Exception as e:
         print(f"Error inserting/updating user: {e}")
         return False
+
+async def update_user_credentials(db: asyncpg.Connection, email: str, password: str, salt: str):
+    query = """
+    UPDATE users 
+    SET password = $1, salt = $2
+    WHERE email = $3
+    RETURNING id, username, email, created_at, user_type, login_at, login;
+    """
+    user = await db.fetchrow(query, password, salt, email)
     
+    return dict(user) if user else None  
+
 async def user_login(db: asyncpg.Connection, email: str):
     query = """
-    SELECT id FROM users 
+    SELECT id, user_name FROM users 
     WHERE email = $1 AND user_type = 'formal'
     """
     user = await db.fetchrow(query, email)
@@ -89,8 +100,7 @@ async def user_login(db: asyncpg.Connection, email: str):
         WHERE id = $2
         """
         await db.execute(update_query, datetime.datetime.now(), user['id'])
-        return user['id']
-    
+        return user['id'], user['user_name']
     return None
 
 async def check_login_status(conn: asyncpg.Connection, id: str) -> bool:
@@ -158,7 +168,7 @@ def db_task_to_taskfetch(row: asyncpg.Record) -> schemas.TaskFetch:
         created_at = row["created_at"],
         dependencies = row["dependencies"],
         assignees = row["assignees"],
-        progress = row["progress"]
+        progress = row["progress"],
     )
 
 def rows_to_taskusermap(rows: List[asyncpg.Record]) -> schemas.TaskUserMap:

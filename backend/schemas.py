@@ -49,3 +49,6 @@ class UserConfirmation(BaseModel):
 class UserLogin(BaseModel):
     email: str
     password: str
+
+class UserReset(BaseModel):
+    email: str
