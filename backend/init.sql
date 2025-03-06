@@ -19,6 +19,7 @@ CREATE TABLE tasks (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     description TEXT,
     dependencies INTEGER[],
+    assignees INTEGER[],
     progress VARCHAR(30) DEFAULT 'In Progress'
 );
 

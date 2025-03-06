@@ -119,9 +119,10 @@ async def insert_task(db: asyncpg.Connection, data: schemas.TaskCreate) -> Optio
             start_datetime,
             due_datetime,
             description,
-            dependencies
+            dependencies,
+            assignees
         ) VALUES (
-            $1,$2,$3,$4,$5
+            $1,$2,$3,$4,$5,$6
         ) RETURNING id
     """
 
@@ -131,7 +132,8 @@ async def insert_task(db: asyncpg.Connection, data: schemas.TaskCreate) -> Optio
             datetime.datetime.combine(data.start_date, data.start_time),
             datetime.datetime.combine(data.due_date, data.due_time),
             data.description,
-            data.dependencies 
+            data.dependencies,
+            data.assignees 
             )
 
 async def insert_assignments(db: asyncpg.Connection, data: schemas.TaskCreate, id: int) -> Optional[int]:
@@ -155,16 +157,20 @@ def db_task_to_taskfetch(row: asyncpg.Record) -> schemas.TaskFetch:
         due_datetime = row["due_datetime"],
         created_at = row["created_at"],
         dependencies = row["dependencies"],
+        assignees = row["assignees"],
+        progress = row["progress"]
     )
 
 def rows_to_taskusermap(rows: List[asyncpg.Record]) -> schemas.TaskUserMap:
-    task_mapping = defaultdict(list)
+    task_list = []  # Store tasks directly in a list
+    
     for row in rows:
-        user_id = row["user_id"]
-        task = db_task_to_taskfetch(row)
-        task_mapping[user_id].append(task)
+        task = db_task_to_taskfetch(row)  # Convert the row to TaskFetch format
+        print(f"task is {task}")
+        task_list.append(task)
 
-    return schemas.TaskUserMap(user_tasks = task_mapping) 
+    return schemas.TaskUserMap(status="success", user_tasks=task_list)
+
 
 async def select_task_by_task_id(db: asyncpg.Connection, task_id: int) -> Optional[schemas.TaskFetch]:
     query = """
@@ -202,13 +208,22 @@ async def select_tasks_by_user(db: asyncpg.Connection) -> schemas.TaskUserMap:
 
 async def select_tasks_where_user(db: asyncpg.Connection, user_id: int) -> schemas.TaskUserMap:
     query = """
-        SELECT a.user_id, t.id AS task_id, t.title, t.description, t.start_datetime, t.due_datetime, t.created_at, t.dependencies
+        SELECT 
+            $1::INTEGER AS user_id,  -- Ensure $1 is treated as an integer
+            t.id AS task_id, 
+            t.title, 
+            t.description, 
+            t.start_datetime, 
+            t.due_datetime, 
+            t.created_at, 
+            t.dependencies, 
+            t.assignees,  
+            t.progress    
         FROM tasks t
-        JOIN assignments a ON t.id = a.task_id
-        WHERE a.user_id = $1
+        WHERE $1::INTEGER = ANY(t.assignees)  -- Explicitly cast $1 to INTEGER
     """
     rows = await db.fetch(query, user_id)
-    print(f"result rows are {rows}")
+    print(f"Result rows are {rows}")
     result = rows_to_taskusermap(rows)
 
     return result

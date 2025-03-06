@@ -23,11 +23,13 @@ class TaskFetch(BaseModel):
     created_at: datetime = Field(..., title="Creation Datetime")
     dependencies: List[int] = Field(default=[], title="Dependencies", description="List of dependent task IDs")
     assignees: List[int] = Field(default=[], title="Assignees", description="User IDs assigned to this task")
+    progress: str = Field(..., title="Progress")
     description: str = Field(..., title="Description", max_length=1000)
 
 class TaskUserMap(BaseModel):
     status: str = Field(default="success", title="Response Status")
-    user_tasks: Dict[int, List[TaskFetch]] = Field(..., title="User Task Map", description="Mapping of user IDs to their assigned tasks")
+    user_tasks: List[TaskFetch] = Field(..., title="List of User Tasks", description="List of tasks without user mapping")
+
 
 class TaskProgress(BaseModel):
     task_id: int = Field(..., title="Task Id", description="The unique ID of the task is only in API responses")
