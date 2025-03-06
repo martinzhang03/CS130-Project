@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict
 import asyncpg
 import datetime
 import random
@@ -178,6 +178,7 @@ async def select_task_by_task_id(db: asyncpg.Connection, task_id: int) -> Option
         return db_task_to_taskfetch(row)
     return None
 
+# Returns tasks that depend on {task_id} (Tasks with {task_id} in their dependency list)
 async def select_task_dependencies(db: asyncpg.Connection, task_id: int) -> List[schemas.TaskFetch]:
     query = """
         SELECT id AS task_id, title, description, start_datetime, due_datetime, created_at, dependencies
@@ -187,6 +188,22 @@ async def select_task_dependencies(db: asyncpg.Connection, task_id: int) -> List
     rows = await db.fetch(query, task_id)
     
     return [db_task_to_taskfetch(row) for row in rows]
+
+
+# Fetch all tasks and their dependencies as an adjacency list.
+async def fetch_task_dependencies(db: asyncpg.Connection) -> Dict[int, List[int]]:
+
+    query = "SELECT id, dependencies FROM tasks;"
+    rows = await db.fetch(query)
+
+    task_graph = {}
+    for row in rows:
+        task_id = row["id"]
+        dependencies = row["dependencies"] or []
+        task_graph[task_id] = dependencies
+
+    return task_graph
+
 
 async def select_tasks_by_user(db: asyncpg.Connection) -> schemas.TaskUserMap:
     query = """
