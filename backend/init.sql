@@ -18,7 +18,8 @@ CREATE TABLE tasks (
     due_datetime TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     description TEXT,
-    dependencies INTEGER[]
+    dependencies INTEGER[],
+    progress VARCHAR(30) DEFAULT 'In Progress'
 );
 
 CREATE TABLE assignments (

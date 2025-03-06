@@ -212,3 +212,13 @@ async def select_tasks_where_user(db: asyncpg.Connection, user_id: int) -> schem
     result = rows_to_taskusermap(rows)
 
     return result
+
+async def update_task_progress(db: asyncpg.Connection, task_id: int) -> bool:
+    query = """
+    UPDATE tasks
+    SET progress = 'Review'
+    WHERE id = $1 AND progress = 'In Progress'
+    RETURNING id;
+    """
+    result = await db.fetchval(query, task_id)
+    return bool(result)

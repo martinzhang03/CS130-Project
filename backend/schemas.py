@@ -29,6 +29,9 @@ class TaskUserMap(BaseModel):
     status: str = Field(default="success", title="Response Status")
     user_tasks: Dict[int, List[TaskFetch]] = Field(..., title="User Task Map", description="Mapping of user IDs to their assigned tasks")
 
+class TaskProgress(BaseModel):
+    task_id: int = Field(..., title="Task Id", description="The unique ID of the task is only in API responses")
+
 class UserEmail(BaseModel):
     first_name: str
     user_name: str
