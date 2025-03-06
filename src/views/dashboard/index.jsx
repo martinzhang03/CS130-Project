@@ -7,6 +7,7 @@ import ModifyTask from "./components/ModifyTask";
 import TaskItem from "./components/TaskItem";
 import TeamChat from "../../components/TeamChat";
 import Flow from "./components/TaskFlow";
+import { fetchTasks, fetchTasksByUserId } from "../../api/task";
 
 const taskList = [
   {
@@ -121,6 +122,23 @@ const taskList = [
 
 const DashBoard = () => {
   const [editTask, setEditTask] = useState(false);
+
+  useEffect(() => {
+    const init = () => {
+      fetchTasks()
+        .then((res) => {
+          console.log(res);
+        })
+        .catch(() => {});
+
+      fetchTasksByUserId(1)
+        .then((res) => {
+          console.log(res);
+        })
+        .catch(() => {});
+    };
+    init();
+  }, []);
 
   return (
     <>

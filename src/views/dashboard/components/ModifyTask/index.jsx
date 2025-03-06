@@ -10,11 +10,20 @@ import {
   TimePicker,
 } from "antd";
 
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import { fetchUsers } from "../../../../api/user";
+import {
+  fetchCreateTask,
+  fetchTasks,
+  fetchUpdateTask,
+} from "../../../../api/task";
+import dayjs from "dayjs";
 const { TextArea } = Input;
 
-const ModifyTask = ({ open = false, onOk, onCancel }) => {
+const ModifyTask = ({ open = false, taskId, onOk, onCancel }) => {
   const [form] = Form.useForm();
+
+  const [users, setUsers] = useState([]);
 
   const _onOk = useCallback(() => {
     onOk?.();
@@ -28,10 +37,66 @@ const ModifyTask = ({ open = false, onOk, onCancel }) => {
     form
       .validateFields()
       .then((vals) => {
-        console.log(vals);
+        let infos = {
+          // task_id: taskId,
+          task_id: 1,
+          task_name: vals.task_name,
+          start_date: dayjs(vals.startDate).format("YYYY-MM-DD"),
+          start_time: dayjs(vals.startDate).format("HH:mm:ss"),
+          due_date: dayjs(vals.endDate).format("YYYY-MM-DD"),
+          due_time: dayjs(vals.endDate).format("HH:mm:ss"),
+          dependencies: vals.dependencies,
+          assignees: vals.assignees,
+          description: vals.description,
+        };
+        console.log(infos);
+        // fetchCreateTask(infos)
+        //   .then((res) => {
+        //     console.log(res);
+        //   })
+        //   .catch(() => {});
+        fetchUpdateTask(infos)
+          .then((res) => {
+            console.log(res);
+          })
+          .catch(() => {});
+        // "task_id": 0,
+        // "task_name": "string",
+        // "start_date": "2025-03-04",
+        // "start_time": "11:38:24.504Z",
+        // "due_date": "2025-03-04",
+        // "due_time": "11:38:24.504Z",
+        // "dependencies": [],
+        // "assignees": [],
+        // "description": "string"
       })
       .catch(() => {});
   };
+
+  useEffect(() => {
+    const getUsers = () => {
+      fetchUsers()
+        .then((res) => {
+          console.log(res);
+          if (res?.status === "success") {
+            setUsers(res?.user_list ?? []);
+          }
+        })
+        .catch(() => {});
+    };
+
+    const getTasks = () => {
+      fetchTasks()
+        .then((res) => {
+          console.log(res);
+        })
+        .catch(() => {});
+    };
+    if (open) {
+      getUsers();
+      getTasks();
+    }
+  }, [open]);
   return (
     <>
       <Modal
@@ -57,7 +122,7 @@ const ModifyTask = ({ open = false, onOk, onCancel }) => {
       >
         <Form form={form} layout="vertical" autoComplete="off">
           <Form.Item
-            name="taskName"
+            name="task_name"
             label="Task Name"
             rules={[
               {
@@ -69,11 +134,11 @@ const ModifyTask = ({ open = false, onOk, onCancel }) => {
             <Input placeholder="Task Name" />
           </Form.Item>
           <Form.Item
-            name="dependency"
+            name="dependencies"
             label="Dependency"
             rules={[
               {
-                required: true,
+                required: false,
                 message: "Please Select Dependency Task",
               },
             ]}
@@ -81,7 +146,7 @@ const ModifyTask = ({ open = false, onOk, onCancel }) => {
             <Select options={[]} placeholder="Dependency" />
           </Form.Item>
           <Form.Item
-            name="startTime"
+            name="startDate"
             label="Start Time"
             rules={[
               {
@@ -99,7 +164,7 @@ const ModifyTask = ({ open = false, onOk, onCancel }) => {
             />
           </Form.Item>
           <Form.Item
-            name="endTime"
+            name="endDate"
             label="End Time"
             rules={[
               {
@@ -117,7 +182,7 @@ const ModifyTask = ({ open = false, onOk, onCancel }) => {
             />
           </Form.Item>
           <Form.Item
-            name="assign"
+            name="assignees"
             label="Assign this task to"
             rules={[
               {
@@ -126,9 +191,17 @@ const ModifyTask = ({ open = false, onOk, onCancel }) => {
               },
             ]}
           >
-            <Select options={[]} placeholder="Assign this task to" />
+            <Select
+              options={users}
+              mode="multiple"
+              fieldNames={{
+                label: "username",
+                value: "id",
+              }}
+              placeholder="Assign this task to"
+            />
           </Form.Item>
-          <Form.Item name="desc" label="Description">
+          <Form.Item name="description" label="Description">
             <TextArea
               autoSize={{ minRows: 4, maxRows: 4 }}
               placeholder="Description"

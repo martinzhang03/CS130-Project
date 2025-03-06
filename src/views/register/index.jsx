@@ -22,9 +22,12 @@ const Register = () => {
           password: vals.password,
         })
           .then((res) => {
-            console.log(res);
             messageApi.success("Success");
-            navigate("/dashboard");
+            if (res.status === "success") {
+              localStorage.setItem("tf_token", res.jwt_token);
+              localStorage.setItem("tf_user_id", res.user_id);
+              navigate("/dashboard");
+            }
           })
           .catch(() => {});
       })
@@ -126,11 +129,11 @@ const Register = () => {
                   rules={[
                     {
                       required: true,
-                      message: "Please Enter Full Name",
+                      message: "Please Enter First Name",
                     },
                   ]}
                 >
-                  <Input placeholder="Full Name" />
+                  <Input placeholder="First Name" />
                 </Form.Item>
               </Col>
               <Col span={12}>
