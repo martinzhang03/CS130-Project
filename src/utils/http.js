@@ -9,6 +9,8 @@ const http = axios.create({
 
 http.interceptors.request.use(
   (config) => {
+    let token = localStorage.getItem("tf_token");
+    config.headers.Authorization = "Bearer " + token;
     return config;
   },
   (error) => {
@@ -26,7 +28,9 @@ http.interceptors.response.use(
         return Promise.reject(response.data?.message ?? "Request Error");
       }
     } else {
-      message.error(response.data?.message ?? "Request Error");
+      if (response.status >= 400) {
+        message.error(response.data?.message ?? "Request Error");
+      }
       return Promise.reject(response.data?.message ?? "Request Error");
     }
   },

@@ -2,7 +2,7 @@ import frameImg from "@/assets/frame.png";
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button, Checkbox, Flex, Form, Input, message } from "antd";
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchLogin } from "../../api/user";
 
@@ -17,22 +17,43 @@ const Login = () => {
       .then((vals) => {
         console.log(vals);
         if (vals.remember) {
-          // Todo
-          // save user info
+          localStorage.setItem("tf_email", vals.email);
+          localStorage.setItem("tf_pwd", vals.password);
+        } else {
+          localStorage.removeItem("tf_email");
+          localStorage.removeItem("tf_pwd");
         }
         fetchLogin({
           email: vals.email,
           password: vals.password,
         })
           .then((res) => {
-            console.log(res);
             messageApi.success("Success");
-            navigate("/dashboard");
+            if (res.status === "success") {
+              localStorage.setItem("tf_token", res.jwt_token);
+              localStorage.setItem("tf_user_id", res.user_id);
+              navigate("/dashboard");
+            }
           })
           .catch(() => {});
       })
       .catch(() => {});
   };
+
+  useEffect(() => {
+    const getLoginInfo = () => {
+      let email = localStorage.getItem("tf_email");
+      let pwd = localStorage.getItem("tf_pwd");
+      if (email && pwd) {
+        form.setFieldsValue({
+          email: email,
+          password: pwd,
+          remember: true,
+        });
+      }
+    };
+    if (form) getLoginInfo();
+  }, [form]);
 
   return (
     <>

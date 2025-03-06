@@ -6,5 +6,22 @@ import http from "../utils/http";
  * @returns
  */
 export const fetchCreateTask = (data) => {
-  return http.post(`/api/tasks`, data);
+  return http.post(`/tasks`, data);
+};
+
+export const fetchUpdateTask = (data) => {
+  return http.put(`/tasks`, data);
+};
+
+/**
+ * @description Get Takss
+ * @returns
+ */
+export const fetchTasks = (params) => {
+  return http.get(`/tasks`, params);
+};
+
+export const fetchTasksByUserId = (id) => {
+  console.log(id);
+  return http.get(`/tasks/user_id/${id}`);
 };
