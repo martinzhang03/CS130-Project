@@ -1,9 +1,10 @@
 from datetime import datetime
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, status
-from crud import insert_assignments, insert_task, select_tasks_by_user, select_tasks_where_user, select_task_dependencies, select_task_by_task_id
+from crud import insert_assignments, insert_task, select_tasks_by_user, select_tasks_where_user, select_task_dependencies, select_task_by_task_id, fetch_task_dependencies
 from database import get_db
 import schemas
+from utils.graph_utils import detect_cycles
 
 router = APIRouter(
     prefix="/tasks",
@@ -93,3 +94,25 @@ async def update_task_progress(data: schemas.TaskProgress, db:asyncpg.Connection
     if success:
         return {"status": "success", "message": "Task progress updated."}
     return {"status": "failure", "message": "Task not found or update failed."}
+
+@router.get("/detect_cycles", summary="Detect dependency cycles in tasks")
+async def detect_dependency_cycles(db: asyncpg.Connection = Depends(get_db)):
+    try:
+        task_graph = await fetch_task_dependencies(db)
+        cycles = detect_cycles(task_graph)
+
+        if not cycles:
+            return {"status": "ok", "message": "No cycles detected."}
+        
+        return {"status": "fail", "message": "Dependency cycles detected.", "cycles": cycles}
+    
+    except asyncpg.PostgresError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error: {str(e)}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"An error occurred: {str(e)}"
+        )
