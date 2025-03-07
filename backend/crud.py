@@ -86,9 +86,9 @@ async def update_user_credentials(db: asyncpg.Connection, email: str, password: 
     
     return dict(user) if user else None  
 
-async def user_login(db: asyncpg.Connection, email: str):
+async def user_login(db: asyncpg.Connection, email: str) -> Optional[Tuple[int, str]]:
     query = """
-    SELECT id, user_name FROM users 
+    SELECT id, username FROM users 
     WHERE email = $1 AND user_type = 'formal'
     """
     user = await db.fetchrow(query, email)
@@ -100,8 +100,19 @@ async def user_login(db: asyncpg.Connection, email: str):
         WHERE id = $2
         """
         await db.execute(update_query, datetime.datetime.now(), user['id'])
-        return user['id'], user['user_name']
+        return user['id'], user['username']
+    
     return None
+
+async def logout_user(db: asyncpg.Connection, email: str) -> bool:
+    query = """
+    UPDATE users 
+    SET login = FALSE, login_at = NULL
+    WHERE email = $1
+    """
+    result = await db.execute(query, email)
+    
+    return result == "UPDATE 1"
 
 async def check_login_status(conn: asyncpg.Connection, id: str) -> bool:
     id = int(id)
@@ -118,6 +129,16 @@ async def check_login_status(conn: asyncpg.Connection, id: str) -> bool:
         await conn.execute("UPDATE users SET login = FALSE WHERE id = $1", id)
     
     return False
+
+async def get_user_by_id(db: asyncpg.Connection, user_id: int) -> Optional[dict]:
+    query = """
+    SELECT id, username, email, created_at, user_type, login_at, login
+    FROM users
+    WHERE id = $1;
+    """
+    user = await db.fetchrow(query, user_id)
+    
+    return dict(user) if user else None
 
 async def insert_task(db: asyncpg.Connection, data: schemas.TaskCreate) -> Optional[int]:
     """

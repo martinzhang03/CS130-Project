@@ -18,7 +18,7 @@ router = APIRouter(
 security = HTTPBearer()
 
 @router.post("/register")
-async def register_user(user: schemas.UserEmail, db: asyncpg.Connection = Depends(get_db)):
+async def register_user(user: schemas.UserRegister, db: asyncpg.Connection = Depends(get_db)):
     try:
         existing_user, _, _ = await crud.find_existing_user(db, user.email, "formal")
 
@@ -50,13 +50,16 @@ async def login_user(user: schemas.UserLogin, db: asyncpg.Connection = Depends(g
         existing_user, password, salt = await crud.find_existing_user(db, user.email, "formal")
         
         encrypt_code = crud.hash_info(user.password, salt)[1] if existing_user else ""
-        if not existing_user or password != encrypt_code:
+        if not existing_user:
             return {"status": "fail", "message": "Email doesn't exist or incorrect password"}
+        if encrypt_code != user.password:
+            res = await crud.logout_user(db, user.email)
+            print(f"res is {res}")
+            return {"status": "fail", "message": "Incorrect password"}
         	
         user_id, user_name = await crud.user_login(db, user.email)
         if user_id is None: 
             return {"status": "fail", "message": "Email doesn't exist or incorrect password"}
-        print(user_id)
         token = auth.generate_token(str(user_id))
         return {"status": "success", "message": "successfully logged in", "jwt_token": token, "user_id": user_id, "user_name": user_name}
     
@@ -79,20 +82,55 @@ async def user_lists(request: Request, token: HTTPAuthorizationCredentials = Dep
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+@router.get("/user_id/{user_id}")
+async def get_user_info(user_id: int, db:asyncpg.Connection = Depends(get_db)):
+    try:
+        user = await crud.get_user_by_id(db, user_id)
+        if not user:
+            return {"status": "fail", "message": "some error occurred"}
+        return {"status": "success", "user": user}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
 @router.post("/reset/code")
-async def reset_code(user: schemas.UserReset, db: asyncpg.Connection = Depends(get_db)):
+async def reset_code(user: schemas.UserEmail, db: asyncpg.Connection = Depends(get_db)):
     try:
         existing_user, _, _ = await crud.find_existing_user(db, user.email, "formal")
         if not existing_user:
-            return {"status": "failure", "message": "Email doesn't exist, please register first."}
+            return {"status": "fail", "message": "Email doesn't exist, please register first."}
 
         code = crud.send_confirmation_email(user.email)
-        salt, hashed_password = crud.hash_info(code)
-        # print(hashed_password)
-        result = await crud.update_user_credentials(db, user.email, salt, hashed_password)
+        salt, hashed_password = crud.hash_info(str(code))
+        print(f"sald and password: {salt}, {hashed_password}")
+        result = await crud.update_user_credentials(db, user.email, hashed_password, salt)
         if result is None:
-            return {"status": "failure", "message": "Some error occurred, please try again"}
+            return {"status": "fail", "message": "Some error occurred, please try again"}
         return {"status": "success", "message": "sent confirmation email"}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.post("/reset/confirm")
+async def reset_confirm(user: schemas.UserConfirmation, db: asyncpg.Connection = Depends(get_db)):
+    try:
+        existing_user, password, salt = await crud.find_existing_user(db, user.email, "formal")
+        if not existing_user:
+            return {"status": "fail", "message": "Email doesn't exist, please register first."}
+        encrypt_code = crud.hash_info(str(user.confirm_code), salt)[1] if existing_user else ""
+        print(f"sald and password: {salt}, {encrypt_code}")
+        if encrypt_code != password:
+            return {"status": "fail", "message": "Incorrect confirm code"}
+        result = await crud.update_user_credentials(db, user.email, user.password, salt)
+
+        if result is None:
+            return {"status": "fail", "message": "Some error occurred, please try again"}
+        
+        user_id, user_name = await crud.user_login(db, user.email)
+        if user_id is None: 
+            return {"status": "fail", "message": "Email doesn't exist or incorrect password"}
+        
+        token = auth.generate_token((str(user_id)))
+        return {"status": "success", "message": "password reset successfully", "jwt_token": token, "user_id": user_id, "user_name": user_name}
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

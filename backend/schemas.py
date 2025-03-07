@@ -34,13 +34,15 @@ class TaskUserMap(BaseModel):
 class TaskProgress(BaseModel):
     task_id: int = Field(..., title="Task Id", description="The unique ID of the task is only in API responses")
 
-class UserEmail(BaseModel):
+class UserRegister(BaseModel):
     first_name: str
     user_name: str
     email: str
     password: str
     
-
+class UserEmail(BaseModel):
+    email: str
+    
 class UserConfirmation(BaseModel):
     email: str
     confirm_code: str
