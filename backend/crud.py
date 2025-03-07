@@ -57,7 +57,7 @@ async def find_existing_user(db: asyncpg.Connection, key: str, query: str = "for
         return False, "", ""
     
 
-async def insert_temp_user(db: asyncpg.Connection, email: str, salt: str, code: str, username: str) -> bool:
+async def insert_temp_user(db: asyncpg.Connection, email: str, salt: str, code: str, username: str, firstname: str) -> bool:
     """
     Inserts or updates a temporary user in the PostgreSQL database.
     """
@@ -65,10 +65,10 @@ async def insert_temp_user(db: asyncpg.Connection, email: str, salt: str, code: 
         # query = "SELECT id, user_type, password, salt, created_at FROM users WHERE email = $1 AND user_type = 'formal'"
 #         user = await db.fetchrow(query, email)
         insert_query = """
-            INSERT INTO users (email, salt, password, created_at, user_type, login_at, login, username)
-            VALUES ($1, $2, $3, $4, 'formal', $5, TRUE, $6)
+            INSERT INTO users (email, salt, password, created_at, user_type, login_at, login, username, firstname)
+            VALUES ($1, $2, $3, $4, 'formal', $5, TRUE, $6, $7)
         """
-        await db.execute(insert_query, email, salt, code, datetime.datetime.now(), datetime.datetime.now(), username)
+        await db.execute(insert_query, email, salt, code, datetime.datetime.now(), datetime.datetime.now(), username, firstname)
         return True
 
     except Exception as e:
@@ -132,7 +132,7 @@ async def check_login_status(conn: asyncpg.Connection, id: str) -> bool:
 
 async def get_user_by_id(db: asyncpg.Connection, user_id: int) -> Optional[dict]:
     query = """
-    SELECT id, username, email, created_at, user_type, login_at, login
+    SELECT id, username, firstname, email, created_at, user_type, login_at, login
     FROM users
     WHERE id = $1;
     """
@@ -180,6 +180,7 @@ async def insert_assignments(db: asyncpg.Connection, data: schemas.TaskCreate, i
     await stmt.executemany(zip(data.assignees, [id]*len(data.assignees)))
 
 def db_task_to_taskfetch(row: asyncpg.Record) -> schemas.TaskFetch:
+    print(f"in here, row is {row}")
     return schemas.TaskFetch(
         task_id = row["task_id"],
         task_name = row["title"],
@@ -244,7 +245,17 @@ async def fetch_task_dependencies(db: asyncpg.Connection) -> Dict[int, List[int]
 
 async def select_tasks_by_user(db: asyncpg.Connection) -> schemas.TaskUserMap:
     query = """
-        SELECT a.user_id, t.id AS task_id, t.title, t.description, t.start_datetime, t.due_datetime, t.created_at, t.dependencies
+        SELECT 
+            a.user_id, 
+            t.id AS task_id, 
+            t.title, 
+            t.description, 
+            t.start_datetime, 
+            t.due_datetime, 
+            t.created_at, 
+            t.dependencies, 
+            t.assignees,  
+            t.progress    
         FROM tasks t
         JOIN assignments a ON t.id = a.task_id
         ORDER BY a.user_id;

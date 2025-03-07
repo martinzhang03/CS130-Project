@@ -27,7 +27,7 @@ async def register_user(user: schemas.UserRegister, db: asyncpg.Connection = Dep
 
         # code = crud.send_confirmation_email(user.email)  
         salt, hashed_password = crud.hash_info(user.password)
-        result = await crud.insert_temp_user(db, user.email, salt, hashed_password, user.user_name)
+        result = await crud.insert_temp_user(db, user.email, salt, hashed_password, user.user_name, user.first_name)
 
         if result is None or result is False:
             return {"status": "fail", "message": "Some Error Occurred, please try again"}
@@ -50,9 +50,10 @@ async def login_user(user: schemas.UserLogin, db: asyncpg.Connection = Depends(g
         existing_user, password, salt = await crud.find_existing_user(db, user.email, "formal")
         
         encrypt_code = crud.hash_info(user.password, salt)[1] if existing_user else ""
+        print(f"sald and password: {salt}, {encrypt_code}")
         if not existing_user:
             return {"status": "fail", "message": "Email doesn't exist or incorrect password"}
-        if encrypt_code != user.password:
+        if encrypt_code != password:
             res = await crud.logout_user(db, user.email)
             print(f"res is {res}")
             return {"status": "fail", "message": "Incorrect password"}
@@ -120,7 +121,8 @@ async def reset_confirm(user: schemas.UserConfirmation, db: asyncpg.Connection =
         print(f"sald and password: {salt}, {encrypt_code}")
         if encrypt_code != password:
             return {"status": "fail", "message": "Incorrect confirm code"}
-        result = await crud.update_user_credentials(db, user.email, user.password, salt)
+        encrypt_password = crud.hash_info(user.password, salt)[1]
+        result = await crud.update_user_credentials(db, user.email, encrypt_password, salt)
 
         if result is None:
             return {"status": "fail", "message": "Some error occurred, please try again"}
