@@ -8,6 +8,7 @@ import {
   Modal,
   Row,
   Select,
+  Slider,
   TimePicker,
 } from "antd";
 
@@ -21,7 +22,7 @@ import {
 import dayjs from "dayjs";
 const { TextArea } = Input;
 
-const ModifyTask = ({ open = false, taskId, onOk, onCancel }) => {
+const ModifyTask = ({ open = false, infos, onOk, onCancel }) => {
   const [form] = Form.useForm();
   const [messageApi, contextHolder] = message.useMessage();
 
@@ -40,9 +41,9 @@ const ModifyTask = ({ open = false, taskId, onOk, onCancel }) => {
     form
       .validateFields()
       .then((vals) => {
-        let infos = {
-          // task_id: taskId,
-          task_id: 1,
+        let info = {
+          task_id: infos?.task_id,
+          // task_id: 1,
           task_name: vals.task_name,
           start_date: dayjs(vals.startDate).format("YYYY-MM-DD"),
           start_time: dayjs(vals.startDate).format("HH:mm:ss"),
@@ -51,23 +52,29 @@ const ModifyTask = ({ open = false, taskId, onOk, onCancel }) => {
           dependencies: vals.dependencies ? [vals.dependencies] : [],
           assignees: vals.assignees,
           description: vals.description,
+          progress: vals.progress,
         };
-        console.log(infos);
+        console.log(info);
+        if (infos) {
+          fetchCreateTask(info)
+            .then((res) => {
+              if (res?.status === "success") {
+                messageApi.success("Success");
+                _onCancel();
+              }
+            })
+            .catch(() => {});
+        } else {
+          fetchUpdateTask(info)
+            .then((res) => {
+              if (res?.status === "success") {
+                messageApi.success("Success");
+                _onOk();
+              }
+            })
+            .catch(() => {});
+        }
 
-        fetchCreateTask(infos)
-          .then((res) => {
-            console.log(res);
-            if (res?.status === "success") {
-              messageApi.success("Success");
-              _onCancel();
-            }
-          })
-          .catch(() => {});
-        // fetchUpdateTask(infos)
-        //   .then((res) => {
-        //     console.log(res);
-        //   })
-        //   .catch(() => {});
         // "task_id": 0,
         // "task_name": "string",
         // "start_date": "2025-03-04",
@@ -107,11 +114,23 @@ const ModifyTask = ({ open = false, taskId, onOk, onCancel }) => {
       getTasks();
     }
   }, [open]);
+
+  useEffect(() => {
+    if (infos) {
+      console.log(infos);
+      form.setFieldsValue({
+        ...infos,
+        dependencies: infos.dependencies?.[0],
+        startDate: dayjs(infos.start_datetime),
+        endDate: dayjs(infos.due_datetime),
+      });
+    }
+  }, [infos]);
   return (
     <>
       {contextHolder}
       <Modal
-        title="Create Task"
+        title={infos ? "Edit Task" : "Create Task"}
         centered
         open={open}
         width={600}
@@ -125,7 +144,7 @@ const ModifyTask = ({ open = false, taskId, onOk, onCancel }) => {
               }}
             >
               <Button type="primary" onClick={clickSubmit}>
-                Create
+                {infos ? "Submit" : "Create"}
               </Button>
             </div>
           </>
@@ -144,26 +163,7 @@ const ModifyTask = ({ open = false, taskId, onOk, onCancel }) => {
           >
             <Input placeholder="Task Name" />
           </Form.Item>
-          <Form.Item
-            name="dependencies"
-            label="Dependency"
-            rules={[
-              {
-                required: false,
-                message: "Please Select Dependency Task",
-              },
-            ]}
-          >
-            <Select
-              allowClear
-              options={tasks}
-              fieldNames={{
-                label: "task_name",
-                value: "task_id",
-              }}
-              placeholder="Dependency"
-            />
-          </Form.Item>
+
           <Form.Item
             name="startDate"
             label="Start Time"
@@ -218,6 +218,33 @@ const ModifyTask = ({ open = false, taskId, onOk, onCancel }) => {
                 value: "id",
               }}
               placeholder="Assign this task to"
+            />
+          </Form.Item>
+          <Form.Item
+            name="dependencies"
+            label="Dependency"
+            rules={[
+              {
+                required: false,
+                message: "Please Select Dependency Task",
+              },
+            ]}
+          >
+            <Select
+              allowClear
+              options={tasks}
+              fieldNames={{
+                label: "task_name",
+                value: "task_id",
+              }}
+              placeholder="Dependency"
+            />
+          </Form.Item>
+          <Form.Item name="progress" label="progress">
+            <Slider
+              tooltip={{
+                formatter: (value) => `${value}%`,
+              }}
             />
           </Form.Item>
           <Form.Item name="description" label="Description">

@@ -3,10 +3,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Avatar, Button, Dropdown, message } from "antd";
 import dayjs from "dayjs";
 import { useAtom, useAtomValue } from "jotai";
-import React from "react";
+import React, { useState } from "react";
 import { userInofsAtom } from "../../../../components/Layout";
 import { fetchDelTasks } from "../../../../api/task";
 import { reloadTaskAtom } from "../..";
+import ModifyTask from "../../../dashboard/components/ModifyTask";
 
 const TaskItem = ({
   infos = {
@@ -19,6 +20,7 @@ const TaskItem = ({
   const [messageApi, contextHolder] = message.useMessage();
   const userInfoMap = useAtomValue(userInofsAtom);
   const [, setReload] = useAtom(reloadTaskAtom);
+  const [editInfo, setEditInfo] = useState();
 
   const clickDelTask = (id) => {
     fetchDelTasks(id)
@@ -30,6 +32,7 @@ const TaskItem = ({
       })
       .catch(() => {});
   };
+
   return (
     <>
       {contextHolder}
@@ -80,12 +83,22 @@ const TaskItem = ({
                 },
                 {
                   key: "delete",
-                  label: "Delete",
+                  label: (
+                    <div
+                      style={{
+                        color: "red",
+                      }}
+                    >
+                      Delete
+                    </div>
+                  ),
                 },
               ],
               onClick: ({ key }) => {
                 if (key === "delete") {
                   clickDelTask(infos.task_id);
+                } else if (key === "edit") {
+                  setEditInfo(infos);
                 }
               },
             }}
@@ -144,6 +157,18 @@ const TaskItem = ({
           </Avatar.Group>
         </div>
       </div>
+
+      <ModifyTask
+        open={editInfo ? true : false}
+        infos={editInfo}
+        onOk={() => {
+          setEditInfo();
+          setReload(true);
+        }}
+        onCancel={() => {
+          setEditInfo();
+        }}
+      />
     </>
   );
 };

@@ -1,22 +1,45 @@
 import { faPenToSquare } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Button, Form, Input, Modal, Space } from "antd";
+import { Button, Form, Input, message, Modal, Space } from "antd";
 import { use, useCallback, useEffect, useState } from "react";
-import { fetchUserInfo } from "../../api/user";
+import { fetchUpdateUserInfo, fetchUserInfo } from "../../api/user";
+import { useAtom } from "jotai";
+import { updateNameAtom } from "../Header";
 
 const UserInfo = ({ open = false, onOk, onCancel }) => {
   const [form] = Form.useForm();
-
+  const [messageApi, contextHolder] = message.useMessage();
+  const [, setUpdateName] = useAtom(updateNameAtom);
   const [isEdit, setIsEdit] = useState(false);
 
   const _onOk = useCallback(() => {
     onOk?.();
   }, [onOk]);
+
   const _onCancel = useCallback(() => {
     onCancel?.();
     setIsEdit(false);
     form.resetFields();
   }, [onCancel]);
+
+  const handleSubmit = () => {
+    form
+      .validateFields()
+      .then((val) => {
+        fetchUpdateUserInfo({
+          ...val,
+          user_id: localStorage.getItem("tf_user_id"),
+        }).then((res) => {
+          if (res?.status === "success") {
+            messageApi.success("Success");
+            setIsEdit(true);
+            localStorage.setItem("tf_user_name", val.user_name);
+            setUpdateName(true);
+          }
+        });
+      })
+      .catch(() => {});
+  };
 
   useEffect(() => {
     const fetchInfo = (id) => {
@@ -44,6 +67,7 @@ const UserInfo = ({ open = false, onOk, onCancel }) => {
   }, [open]);
   return (
     <>
+      {contextHolder}
       <Modal
         maskClosable={false}
         title="My Info"
@@ -67,7 +91,9 @@ const UserInfo = ({ open = false, onOk, onCancel }) => {
                 >
                   Cancel
                 </Button>
-                <Button type="primary">Submit</Button>
+                <Button type="primary" onClick={handleSubmit}>
+                  Submit
+                </Button>
               </Space>
             ) : (
               <Space>

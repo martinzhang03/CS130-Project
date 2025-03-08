@@ -5,15 +5,28 @@ import { Avatar, Dropdown } from "antd";
 import React, { useEffect, useState } from "react";
 import UserInfo from "../UserInfo";
 import { useNavigate } from "react-router-dom";
+import { atom, useAtom, useAtomValue } from "jotai";
 
+export const updateNameAtom = atom(false);
 const Header = () => {
   const [editInfo, setEditInfo] = useState(false);
   const navigate = useNavigate();
   const [userName, setUserName] = useState();
+  const [updateName, setUpdateName] = useAtom(updateNameAtom);
   useEffect(() => {
     let name = localStorage.getItem("tf_user_name");
     if (name) setUserName(name);
+    setUpdateName(false);
   }, []);
+
+  useEffect(() => {
+    const update = () => {
+      let name = localStorage.getItem("tf_user_name");
+      if (name) setUserName(name);
+      set;
+    };
+    if (updateName) update();
+  }, [updateName]);
   return (
     <>
       <div

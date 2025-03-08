@@ -7,51 +7,19 @@ import TaskStatusBox from "./components/TaskStatuBox";
 import { fetchTasks } from "../../api/task";
 import { atom, useAtom } from "jotai";
 
-const taskInfos1 = [
+const taskInfos = [
   {
     key: "wait",
     label: "Backlog",
 
     tasks: [
       {
-        taskId: 1,
-        name: "Task A",
-        date: "2025-02-18 21:39:00",
-        desc: "This is task desciption",
-        users: [
-          {
-            userId: 1,
-            name: "KL",
-          },
-          {
-            userId: 2,
-            name: "K",
-          },
-          {
-            userId: 3,
-            name: "E",
-          },
-        ],
-      },
-      {
-        taskId: 2,
-        name: "Task B",
-        date: "2025-02-18 21:39:00",
-        desc: "This is task desciption",
-        users: [
-          {
-            userId: 1,
-            name: "KL",
-          },
-          {
-            userId: 2,
-            name: "K",
-          },
-          {
-            userId: 3,
-            name: "E",
-          },
-        ],
+        task_id: 1,
+        task_name: "Task A",
+        start_datetime: "2025-02-18 21:39:00",
+        due_datetime: "2025-02-18 23:39:00",
+        description: "This is task desciption",
+        assignees: [1],
       },
     ],
   },
@@ -59,80 +27,17 @@ const taskInfos1 = [
     key: "progress",
     label: "In Progress",
 
-    tasks: [
-      {
-        taskId: 3,
-        name: "Task C",
-        date: "2025-02-18 21:39:00",
-        desc: "This is task desciption",
-        users: [
-          {
-            userId: 1,
-            name: "KL",
-          },
-          {
-            userId: 2,
-            name: "K",
-          },
-          {
-            userId: 3,
-            name: "E",
-          },
-        ],
-      },
-    ],
+    tasks: [],
   },
   {
     key: "review",
     label: "Review",
-    tasks: [
-      {
-        taskId: 4,
-        name: "Task D",
-        date: "2025-02-18 21:39:00",
-        desc: "This is task desciption",
-        users: [
-          {
-            userId: 1,
-            name: "KL",
-          },
-          {
-            userId: 2,
-            name: "K",
-          },
-          {
-            userId: 3,
-            name: "E",
-          },
-        ],
-      },
-    ],
+    tasks: [],
   },
   {
     key: "done",
     label: "Done",
-    tasks: [
-      {
-        taskId: 5,
-        name: "Task E",
-        date: "2025-02-18 21:39:00",
-        desc: "This is task desciption",
-        users: [
-          {
-            userId: 1,
-            name: "KL",
-          },
-          {
-            userId: 2,
-            name: "K",
-          },
-          {
-            userId: 3,
-            name: "E",
-          },
-        ],
-      },
-    ],
+    tasks: [],
   },
 ];
 
@@ -140,7 +45,7 @@ export const reloadTaskAtom = atom(false);
 
 const Tasks = () => {
   const [tasks, setTasks] = useState([]);
-  const [taskInfos, setTaskInfos] = useState([]);
+  const [taskInfos1, setTaskInfos] = useState([]);
   const [reload, setReload] = useAtom(reloadTaskAtom);
 
   const getTaskInfo = () => {
