@@ -140,6 +140,40 @@ async def get_user_by_id(db: asyncpg.Connection, user_id: int) -> Optional[dict]
     
     return dict(user) if user else None
 
+async def update_user_info(db: asyncpg.Connection, user_id: int, first_name: str = None, user_name: str = None):
+    updates = []
+    values = {}
+
+    if first_name:
+        updates.append("firstname = $1")
+        values["first_name"] = first_name
+
+    if user_name:
+        updates.append("username = $2")
+        values["user_name"] = user_name
+
+    if not updates:
+        return {"status": "fail", "message": "No fields to update"}
+
+    query = f"""
+    UPDATE users 
+    SET {', '.join(updates)}
+    WHERE id = $3
+    RETURNING id, firstname, username;
+    """
+
+    try:
+        result = await db.fetchrow(query, *values.values(), user_id)
+        if result:
+            return {"status": "success", "updated_user": dict(result)}
+        else:
+            return {"status": "fail", "message": "User not found"}
+    except asyncpg.UniqueViolationError:
+        return {"status": "fail", "message": "Username already taken"}
+    except Exception as e:
+        return {"status": "fail", "message": f"Database error: {str(e)}"}
+
+
 async def insert_task(db: asyncpg.Connection, data: schemas.TaskCreate) -> Optional[int]:
     """
     Creates task and returns id

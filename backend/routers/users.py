@@ -92,6 +92,14 @@ async def get_user_info(user_id: int, db:asyncpg.Connection = Depends(get_db)):
         return {"status": "success", "user": user}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/update")
+async def get_user_info(user: schemas.UserUpdate, db:asyncpg.Connection = Depends(get_db)):
+    try: 
+        response = await crud.update_user_info(db, user.user_id, user.first_name, user.user_name)
+        return response
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
     
 @router.post("/reset/code")
 async def reset_code(user: schemas.UserEmail, db: asyncpg.Connection = Depends(get_db)):

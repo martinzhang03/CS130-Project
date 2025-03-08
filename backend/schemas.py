@@ -54,3 +54,8 @@ class UserLogin(BaseModel):
 
 class UserReset(BaseModel):
     email: str
+
+class UserUpdate(BaseModel):
+    user_id: int
+    first_name: str
+    user_name: str
