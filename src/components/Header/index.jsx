@@ -2,13 +2,18 @@ import { faUser } from "@fortawesome/free-regular-svg-icons";
 import { faArrowRightFromBracket } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Avatar, Dropdown } from "antd";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import UserInfo from "../UserInfo";
 import { useNavigate } from "react-router-dom";
 
 const Header = () => {
   const [editInfo, setEditInfo] = useState(false);
   const navigate = useNavigate();
+  const [userName, setUserName] = useState();
+  useEffect(() => {
+    let name = localStorage.getItem("tf_user_name");
+    if (name) setUserName(name);
+  }, []);
   return (
     <>
       <div
@@ -70,7 +75,7 @@ const Header = () => {
                 cursor: "pointer",
               }}
             >
-              Riny
+              {userName}
             </Avatar>
           </Dropdown>
         </div>

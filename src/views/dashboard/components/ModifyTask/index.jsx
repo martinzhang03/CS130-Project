@@ -26,6 +26,7 @@ const ModifyTask = ({ open = false, taskId, onOk, onCancel }) => {
   const [messageApi, contextHolder] = message.useMessage();
 
   const [users, setUsers] = useState([]);
+  const [tasks, setTasks] = useState([]);
 
   const _onOk = useCallback(() => {
     onOk?.();
@@ -47,11 +48,12 @@ const ModifyTask = ({ open = false, taskId, onOk, onCancel }) => {
           start_time: dayjs(vals.startDate).format("HH:mm:ss"),
           due_date: dayjs(vals.endDate).format("YYYY-MM-DD"),
           due_time: dayjs(vals.endDate).format("HH:mm:ss"),
-          dependencies: vals.dependencies,
+          dependencies: vals.dependencies ? [vals.dependencies] : [],
           assignees: vals.assignees,
           description: vals.description,
         };
         console.log(infos);
+
         fetchCreateTask(infos)
           .then((res) => {
             console.log(res);
@@ -83,7 +85,6 @@ const ModifyTask = ({ open = false, taskId, onOk, onCancel }) => {
     const getUsers = () => {
       fetchUsers()
         .then((res) => {
-          console.log(res);
           if (res?.status === "success") {
             setUsers(res?.user_list ?? []);
           }
@@ -95,6 +96,9 @@ const ModifyTask = ({ open = false, taskId, onOk, onCancel }) => {
       fetchTasks()
         .then((res) => {
           console.log(res);
+          if (res?.status === "success") {
+            setTasks(res?.user_tasks ?? []);
+          }
         })
         .catch(() => {});
     };
@@ -150,7 +154,15 @@ const ModifyTask = ({ open = false, taskId, onOk, onCancel }) => {
               },
             ]}
           >
-            <Select options={[]} placeholder="Dependency" />
+            <Select
+              allowClear
+              options={tasks}
+              fieldNames={{
+                label: "task_name",
+                value: "task_id",
+              }}
+              placeholder="Dependency"
+            />
           </Form.Item>
           <Form.Item
             name="startDate"

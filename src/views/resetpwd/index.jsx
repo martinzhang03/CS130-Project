@@ -4,13 +4,52 @@ import { Button, Checkbox, Col, Form, Input, message, Row, Space } from "antd";
 import frameImg from "@/assets/frame.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
+import { fetchResetPwd, fetchSendCode } from "../../api/user";
 
 const ResetPwd = () => {
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const [messageApi, contextHolder] = message.useMessage();
 
-  const clickSubmit = () => {};
+  const clickSubmit = () => {
+    form
+      .validateFields()
+      .then((vals) => {
+        console.log(vals);
+        fetchResetPwd({ ...vals })
+          .then((res) => {
+            if (res.status === "success") {
+              messageApi.success(res.message ?? "Success").then(() => {
+                navigate("/login");
+              });
+            }
+          })
+          .catch(() => {});
+      })
+      .catch(() => {});
+  };
+
+  const sendResetCode = () => {
+    let email = form.getFieldValue("email");
+    if (email) {
+      fetchSendCode({ email })
+        .then((res) => {
+          console.log(res);
+          if (res.status === "success") {
+            messageApi.success(res.message ?? "Success");
+          }
+        })
+        .catch(() => {});
+    } else {
+      // form.setFieldValue()
+      form.setFields([
+        {
+          name: "email",
+          errors: ["Please Enter Email"],
+        },
+      ]);
+    }
+  };
   return (
     <>
       <>
@@ -122,13 +161,14 @@ const ResetPwd = () => {
                       width: "100%",
                     }}
                     type="primary"
+                    onClick={sendResetCode}
                   >
                     Send Code
                   </Button>
                 </Form.Item>
               </Form.Item>
               <Form.Item
-                name="code"
+                name="confirm_code"
                 rules={[
                   {
                     required: true,

@@ -26,6 +26,7 @@ const Register = () => {
             if (res.status === "success") {
               localStorage.setItem("tf_token", res.jwt_token);
               localStorage.setItem("tf_user_id", res.user_id);
+              localStorage.setItem("tf_user_name", res.user_name);
               navigate("/dashboard");
             }
           })

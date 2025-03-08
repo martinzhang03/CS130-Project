@@ -1,7 +1,8 @@
 import { faPenToSquare } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button, Form, Input, Modal, Space } from "antd";
-import { useCallback, useState } from "react";
+import { use, useCallback, useEffect, useState } from "react";
+import { fetchUserInfo } from "../../api/user";
 
 const UserInfo = ({ open = false, onOk, onCancel }) => {
   const [form] = Form.useForm();
@@ -16,9 +17,35 @@ const UserInfo = ({ open = false, onOk, onCancel }) => {
     setIsEdit(false);
     form.resetFields();
   }, [onCancel]);
+
+  useEffect(() => {
+    const fetchInfo = (id) => {
+      fetchUserInfo(id)
+        .then((res) => {
+          console.log(res);
+          if (res.status === "success") {
+            let infos = res.user ?? {};
+            form.setFieldsValue({
+              first_name: infos.firstname,
+              user_name: infos.username,
+              email: infos.email,
+            });
+          }
+        })
+        .catch(() => {});
+    };
+    const getUserInfo = () => {
+      let userId = localStorage.getItem("tf_user_id");
+      if (userId) {
+        fetchInfo(userId);
+      }
+    };
+    if (open) getUserInfo();
+  }, [open]);
   return (
     <>
       <Modal
+        maskClosable={false}
         title="My Info"
         open={open}
         centered

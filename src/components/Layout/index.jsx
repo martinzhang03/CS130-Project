@@ -13,50 +13,25 @@ import Header from "../Header";
 
 import helpImg from "@/assets/help.png";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { atom } from "jotai";
+import { atom, useAtom } from "jotai";
+import { fetchUsers } from "../../api/user";
 
-export const taskListsAtom = atom([
-  {
-    taskId: "1",
-    taskName: "Task A",
-    startTime: "2025-02-10 08:00:00",
-    endTime: "2025-02-10 10:00:00",
-    status: "review",
-    progress: 100,
-    dependency: "",
-  },
-  {
-    taskId: "2",
-    taskName: "Task B",
-    startTime: "2025-02-11 12:00:00",
-    endTime: "2025-02-11 13:00:00",
-    status: "review",
-    progress: 100,
-    dependency: "1",
-  },
-  {
-    taskId: "3",
-    taskName: "Task C",
-    startTime: "2025-02-13 09:00:00",
-    endTime: "2025-02-13 14:00:00",
-    status: "progress",
-    progress: 20,
-    dependency: "2",
-  },
-  {
-    taskId: "4",
-    taskName: "Task D",
-    startTime: "2025-02-14 15:00:00",
-    endTime: "2025-02-14 16:00:00",
-    status: "progress",
-    progress: 10,
-    dependency: "2",
-  },
-]);
+export const userListAtom = atom([]);
+
+export const userInofsAtom = atom((get) => {
+  let list = get(userListAtom) ?? [];
+  let obj = {};
+  list.map(({ id, username }) => {
+    obj[id] = username;
+  });
+
+  return obj;
+});
 
 const Layout = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [, setUserList] = useAtom(userListAtom);
   const [selectedKeys, setSelectedKeys] = useState([]);
   const items = [
     {
@@ -103,6 +78,20 @@ const Layout = () => {
       navigate("/dashboard");
     }
   }, [location]);
+
+  useEffect(() => {
+    const initUserList = () => {
+      fetchUsers()
+        .then((res) => {
+          console.log(res);
+          if (res?.status === "success") {
+            setUserList(res?.user_list ?? []);
+          }
+        })
+        .catch(() => {});
+    };
+    initUserList();
+  }, []);
   return (
     <>
       <div

@@ -6,13 +6,11 @@ import CusNode from "./CusNode";
 import "./index.less";
 import "@xyflow/react/dist/style.css";
 import { useAtomValue } from "jotai";
-import { taskListsAtom } from "../../../../components/Layout";
 
 const nodeTypes = {
   CusNode: CusNode,
 };
-const Flow = () => {
-  const taskList = useAtomValue(taskListsAtom);
+const Flow = ({ taskList = [] }) => {
   const wrapRef = useRef(null);
   const wrapSize = useSize(wrapRef);
 
@@ -82,15 +80,20 @@ const Flow = () => {
         width = dateWidth,
         height = timeHeight;
       x =
-        dayjs(infos.startTime).diff(dayjs(startDate), "day") * dateWidth +
+        dayjs(infos.start_datetime).diff(dayjs(startDate), "day") * dateWidth +
         timeWidth;
-      y = dayjs(infos.startTime).hour() * timeHeight + dateHeight;
-      if (infos.startTime && infos.endTime) {
-        let dayLen = dayjs(infos.endTime).diff(dayjs(infos.startTime), "day");
+      y = dayjs(infos.start_datetime).hour() * timeHeight + dateHeight;
+      if (infos.start_datetime && infos.due_datetime) {
+        let dayLen = dayjs(infos.due_datetime).diff(
+          dayjs(infos.start_datetime),
+          "day"
+        );
         if (dayLen === 0) {
           height =
-            dayjs(infos.endTime).diff(dayjs(infos.startTime), "hour") *
-            timeHeight;
+            dayjs(infos.due_datetime).diff(
+              dayjs(infos.start_datetime),
+              "hour"
+            ) * timeHeight;
         } else {
           width = dayLen * dateWidth;
           height = timeHeight * 2;
@@ -105,8 +108,8 @@ const Flow = () => {
   const getAllParentIds = (list) => {
     let arr = [];
     list.map((item) => {
-      if (item.dependency) {
-        arr.push(item.dependency);
+      if (item.dependencies.length) {
+        arr.push(...item.dependencies);
       }
     });
     return arr;
@@ -117,26 +120,27 @@ const Flow = () => {
       edges = [];
     if (taskList.length) {
       let parents = getAllParentIds(taskList);
+      console.log(parents);
       taskList.map((task) => {
         let info = calcSize(task);
-        let isStart = !task.dependency ? true : false;
+        let isStart = !task.dependencies?.length ? true : false;
         nodes.push({
-          id: task.taskId,
+          id: task.task_id.toString(),
           type: "CusNode",
           data: {
-            label: task.taskName,
+            label: task.task_name,
             width: info.width,
             height: info.height,
             isStart,
-            isEnd: parents.includes(task.taskId) ? false : true,
+            isEnd: parents.includes(task.task_id) ? false : true,
           },
           position: { x: info.x, y: info.y },
         });
         if (!isStart) {
           edges.push({
-            id: `edge${task.dependency}_${task.taskId}`,
-            source: task.dependency,
-            target: task.taskId,
+            id: `edge${task.dependencies}_${task.task_id}`,
+            source: task.dependencies[0].toString(),
+            target: task.task_id.toString(),
             animated: task.progress === "done" ? false : true,
             style: {
               stroke: "#81d076",
@@ -146,6 +150,7 @@ const Flow = () => {
         }
       });
     }
+    console.log(nodes, edges);
     setNodes(nodes);
     setEdges(edges);
   }, [taskList, calcSize]);
@@ -179,19 +184,19 @@ const Flow = () => {
     let start = "",
       end = "";
     list.map((info) => {
-      if (info.startTime) {
+      if (info.start_datetime) {
         if (!start) {
-          start = info.startTime;
-        } else if (dayjs(info.startTime).diff(dayjs(start)) < 0) {
-          start = info.startTime;
+          start = info.start_datetime;
+        } else if (dayjs(info.start_datetime).diff(dayjs(start)) < 0) {
+          start = info.start_datetime;
         }
       }
 
-      if (info.endTime) {
+      if (info.due_datetime) {
         if (!end) {
-          end = info.endTime;
-        } else if (dayjs(info.endTime).diff(dayjs(end)) > 0) {
-          end = info.endTime;
+          end = info.due_datetime;
+        } else if (dayjs(info.due_datetime).diff(dayjs(end)) > 0) {
+          end = info.due_datetime;
         }
       }
     });
