@@ -330,3 +330,8 @@ async def update_task_progress(db: asyncpg.Connection, task_id: int) -> bool:
     """
     result = await db.fetchval(query, task_id)
     return bool(result)
+
+async def delete_task(db: asyncpg.Connection, task_id: int) -> bool:
+    query = "DELETE FROM tasks WHERE id = $1 RETURNING id;"
+    result = await db.fetchval(query, task_id)
+    return result is not None

@@ -1,7 +1,7 @@
 from datetime import datetime
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, status
-from crud import insert_assignments, insert_task, select_tasks_by_user, select_tasks_where_user, select_task_dependencies, select_task_by_task_id, fetch_task_dependencies
+from crud import *
 from database import get_db
 import schemas
 from utils.graph_utils import detect_cycles
@@ -86,7 +86,10 @@ async def put_task_by_task_id(task_id: int, db:asyncpg.Connection = Depends(get_
 
 @router.delete("/task_id/{task_id}", summary="Delete task with given task id")
 async def delete_task_by_task_id(task_id: int, db:asyncpg.Connection = Depends(get_db)):
-    pass
+    success = await delete_task(db, task_id)
+    if not success:
+        return {"status": "fail", "message": f"deletion failed"}
+    return {"status": "success", "message": "Task deleted successfully"}
 
 @router.post("/task_progress/{task_id}", summary="Update Task Progress")
 async def update_task_progress(data: schemas.TaskProgress, db:asyncpg.Connection = Depends(get_db)):
