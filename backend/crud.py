@@ -321,17 +321,77 @@ async def select_tasks_where_user(db: asyncpg.Connection, user_id: int) -> schem
 
     return result
 
-async def update_task_progress(db: asyncpg.Connection, task_id: int) -> bool:
-    query = """
+async def update_task_progress(db: asyncpg.Connection, task_id: int, up: bool, down: bool) -> str:
+    
+    progress_chain = ["In Progress", "Review", "Done"]
+
+    query_select = "SELECT progress FROM tasks WHERE id = $1;"
+    current_progress = await db.fetchval(query_select, task_id)
+    
+    if current_progress not in progress_chain:
+        return None 
+
+    index = progress_chain.index(current_progress)
+
+    if up and index < len(progress_chain) - 1:
+        new_progress = progress_chain[index + 1]
+    elif down and index > 0:
+        new_progress = progress_chain[index - 1]
+    else:
+        return current_progress
+
+    query_update = """
     UPDATE tasks
-    SET progress = 'Review'
-    WHERE id = $1 AND progress = 'In Progress'
-    RETURNING id;
+    SET progress = $1
+    WHERE id = $2
+    RETURNING progress;
     """
-    result = await db.fetchval(query, task_id)
-    return bool(result)
+    updated_progress = await db.fetchval(query_update, new_progress, task_id)
+
+    return updated_progress
 
 async def delete_task(db: asyncpg.Connection, task_id: int) -> bool:
     query = "DELETE FROM tasks WHERE id = $1 RETURNING id;"
     result = await db.fetchval(query, task_id)
     return result is not None
+
+async def update_task(db: asyncpg.Connection, task: schemas.TaskEdit) -> dict:
+    
+    if task.task_id is None:
+        return {"status": "fail", "message": "Task ID is required"}
+
+    query_check = "SELECT id FROM tasks WHERE id = $1;"
+    task_exists = await db.fetchval(query_check, task.task_id)
+
+    if not task_exists:
+        return {"status": "fail", "message": "Task ID not found"}
+
+    start_datetime = datetime.datetime.combine(task.start_date, task.start_time)
+    due_datetime = datetime.datetime.combine(task.due_date, task.due_time)
+
+    query_update = """
+    UPDATE tasks
+    SET title = $1, 
+        start_datetime = $2, 
+        due_datetime = $3, 
+        dependencies = $4, 
+        assignees = $5, 
+        description = $6
+    WHERE id = $7
+    RETURNING id;
+    """
+    result = await db.fetchval(
+        query_update, 
+        task.task_name, 
+        start_datetime, 
+        due_datetime, 
+        task.dependencies, 
+        task.assignees, 
+        task.description, 
+        task.task_id
+    )
+
+    if result:
+        return {"status": "success", "message": "Task updated successfully"}
+    else:
+        return {"status": "fail", "message": "Task update failed"}

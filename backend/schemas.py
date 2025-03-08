@@ -33,6 +33,19 @@ class TaskUserMap(BaseModel):
 
 class TaskProgress(BaseModel):
     task_id: int = Field(..., title="Task Id", description="The unique ID of the task is only in API responses")
+    up: bool
+    down: bool
+
+class TaskEdit(BaseModel):
+    task_id: Optional[int] = Field(None, title="Task Id", description="The unique ID of the task is only in API responses")
+    task_name: str = Field(..., title="Task Name", min_length=1, max_length=255)
+    start_date: date = Field(..., title="Start Date")
+    start_time: time = Field(..., title="Start Time")
+    due_date: date = Field(..., title="Due Date")
+    due_time: time = Field(..., title="Due Time")
+    dependencies: List[int] = Field(default=[], title="Dependencies", description="List of dependent task IDs")
+    assignees: List[int] = Field(default=[], title="Assignees", description="User IDs assigned to this task")
+    description: str = Field(..., title="Description", max_length=1000)
 
 class UserRegister(BaseModel):
     first_name: str
@@ -42,7 +55,7 @@ class UserRegister(BaseModel):
     
 class UserEmail(BaseModel):
     email: str
-    
+
 class UserConfirmation(BaseModel):
     email: str
     confirm_code: str

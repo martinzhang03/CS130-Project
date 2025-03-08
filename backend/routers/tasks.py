@@ -80,9 +80,10 @@ async def get_dependencies_by_task_id(task_id: int, db:asyncpg.Connection = Depe
         return {"status": "fail", "message": f"An error occurred: {str(e)}"}
 
 
-@router.put("/task_id/{task_id}", summary="Edit task with given task id")
-async def put_task_by_task_id(task_id: int, db:asyncpg.Connection = Depends(get_db)):
-    pass
+@router.post("/task_edit/{task_id}", summary="Edit task with given task ID")
+async def put_task_by_task_id(task: schemas.TaskEdit, db: asyncpg.Connection = Depends(get_db)):
+    result = await update_task(db, task)
+    return result
 
 @router.delete("/task_id/{task_id}", summary="Delete task with given task id")
 async def delete_task_by_task_id(task_id: int, db:asyncpg.Connection = Depends(get_db)):
@@ -93,8 +94,11 @@ async def delete_task_by_task_id(task_id: int, db:asyncpg.Connection = Depends(g
 
 @router.post("/task_progress/{task_id}", summary="Update Task Progress")
 async def update_task_progress(data: schemas.TaskProgress, db:asyncpg.Connection = Depends(get_db)):
-    success = await update_task_progress(db, data.task_id)
-    if success:
+    success = await update_task_progress(db, data.task_id, data.up, data.down)
+    if success is not None:
+        if success == "Review":
+            res = select_task_by_task_id(db, data.task_id)
+            # print(res)
         return {"status": "success", "message": "Task progress updated."}
     return {"status": "failure", "message": "Task not found or update failed."}
 
