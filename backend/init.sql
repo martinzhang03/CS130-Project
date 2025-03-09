@@ -21,7 +21,8 @@ CREATE TABLE tasks (
     description TEXT,
     dependencies INTEGER[],
     assignees INTEGER[],
-    progress VARCHAR(30) DEFAULT 'In Progress'
+    progress VARCHAR(30) DEFAULT 'In Progress',
+    percentage INT DEFAULT 33
 );
 
 CREATE TABLE assignments (

@@ -225,6 +225,7 @@ def db_task_to_taskfetch(row: asyncpg.Record) -> schemas.TaskFetch:
         dependencies = row["dependencies"],
         assignees = row["assignees"],
         progress = row["progress"],
+        percentage = row["percentage"],
     )
 
 def rows_to_taskusermap(rows: List[asyncpg.Record]) -> schemas.TaskUserMap:
@@ -240,7 +241,7 @@ def rows_to_taskusermap(rows: List[asyncpg.Record]) -> schemas.TaskUserMap:
 
 async def select_task_by_task_id(db: asyncpg.Connection, task_id: int) -> Optional[schemas.TaskFetch]:
     query = """
-        SELECT id AS task_id, title, description, start_datetime, due_datetime, created_at, dependencies
+        SELECT id AS task_id, title, description, start_datetime, due_datetime, created_at, dependencies, assignees, progress, percentage
         FROM tasks
         WHERE id = $1;
     """
@@ -253,7 +254,7 @@ async def select_task_by_task_id(db: asyncpg.Connection, task_id: int) -> Option
 # Returns tasks that depend on {task_id} (Tasks with {task_id} in their dependency list)
 async def select_task_dependencies(db: asyncpg.Connection, task_id: int) -> List[schemas.TaskFetch]:
     query = """
-        SELECT id AS task_id, title, description, start_datetime, due_datetime, created_at, dependencies
+        SELECT id AS task_id, title, description, start_datetime, due_datetime, created_at, dependencies, assignees, progress, percentage
         FROM tasks
         WHERE dependencies @> ARRAY[$1]::integer[];
     """
@@ -289,7 +290,8 @@ async def select_tasks_by_user(db: asyncpg.Connection) -> schemas.TaskUserMap:
             t.created_at, 
             t.dependencies, 
             t.assignees,  
-            t.progress    
+            t.progress,
+            t.percentage    
         FROM tasks t
         JOIN assignments a ON t.id = a.task_id
         ORDER BY a.user_id;
@@ -311,7 +313,8 @@ async def select_tasks_where_user(db: asyncpg.Connection, user_id: int) -> schem
             t.created_at, 
             t.dependencies, 
             t.assignees,  
-            t.progress    
+            t.progress,
+            t.percentage    
         FROM tasks t
         WHERE $1::INTEGER = ANY(t.assignees)  -- Explicitly cast $1 to INTEGER
     """
@@ -322,14 +325,14 @@ async def select_tasks_where_user(db: asyncpg.Connection, user_id: int) -> schem
     return result
 
 async def update_task_progress(db: asyncpg.Connection, task_id: int, up: bool, down: bool) -> str:
-    
     progress_chain = ["In Progress", "Review", "Done"]
+    progress_percentage = {"In Progress": 33, "Review": 67, "Done": 100}
 
     query_select = "SELECT progress FROM tasks WHERE id = $1;"
     current_progress = await db.fetchval(query_select, task_id)
     
     if current_progress not in progress_chain:
-        return None 
+        return None
 
     index = progress_chain.index(current_progress)
 
@@ -340,15 +343,18 @@ async def update_task_progress(db: asyncpg.Connection, task_id: int, up: bool, d
     else:
         return current_progress
 
+    new_percentage = progress_percentage[new_progress]
+
     query_update = """
     UPDATE tasks
-    SET progress = $1
-    WHERE id = $2
+    SET progress = $1, percentage = $2
+    WHERE id = $3
     RETURNING progress;
     """
-    updated_progress = await db.fetchval(query_update, new_progress, task_id)
+    updated_progress = await db.fetchval(query_update, new_progress, new_percentage, task_id)
 
     return updated_progress
+
 
 async def delete_task(db: asyncpg.Connection, task_id: int) -> bool:
     query = "DELETE FROM tasks WHERE id = $1 RETURNING id;"
