@@ -1,7 +1,7 @@
 import pytest
 import datetime
 from collections import defaultdict
-from backend.crud import (
+from crud import (
     select_tasks_by_user,
     select_tasks_where_user,
     rows_to_taskusermap,
