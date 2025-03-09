@@ -6,11 +6,11 @@ import http from "../utils/http";
  * @returns
  */
 export const fetchCreateTask = (data) => {
-  return http.post(`/tasks`, data);
+  return http.post(`/tasks/`, data);
 };
 
 export const fetchUpdateTask = (data) => {
-  return http.put(`/tasks`, data);
+  return http.post(`/tasks/task_edit/${data.task_id}`, data);
 };
 
 /**
@@ -22,6 +22,13 @@ export const fetchTasks = (params) => {
 };
 
 export const fetchTasksByUserId = (id) => {
-  console.log(id);
   return http.get(`/tasks/user_id/${id}`);
+};
+
+export const fetchDelTasks = (id) => {
+  return http.delete(`/tasks/task_id/${id}`);
+};
+
+export const fetchChangeProgress = (data) => {
+  return http.post(`/tasks/task_progress/${data.task_id}`, data);
 };

@@ -2,9 +2,12 @@ import { Avatar } from "antd";
 import dayjs from "dayjs";
 import React from "react";
 import Progress from "../Progress";
-import { getRandomRgbColor } from "../../../../utils/utils";
+import { colorMaps, getRandomRgbColor } from "../../../../utils/utils";
+import { useAtom, useAtomValue } from "jotai";
+import { userInofsAtom } from "../../../../components/Layout";
 
 const TaskItem = ({ infos = {} }) => {
+  const userInfosMap = useAtomValue(userInofsAtom);
   return (
     <>
       <div
@@ -39,7 +42,7 @@ const TaskItem = ({ infos = {} }) => {
                 color: "#695B5B",
               }}
             >
-              {infos.name}
+              {infos.task_name}
             </div>
           </div>
           <div
@@ -47,7 +50,7 @@ const TaskItem = ({ infos = {} }) => {
               color: "#AFAFAF",
             }}
           >
-            {dayjs(infos.startTime).format("MMM. MM-DD")}
+            {dayjs(infos.start_datetime).format("MMM. MM-DD")}
           </div>
         </div>
         {/* desc */}
@@ -62,9 +65,9 @@ const TaskItem = ({ infos = {} }) => {
             height: 58,
           }}
           className="multi-line-ellipsis"
-          title={infos.desc}
+          title={infos.description}
         >
-          {infos.desc}
+          {infos.description}
         </div>
         {/* line */}
         <div
@@ -89,7 +92,7 @@ const TaskItem = ({ infos = {} }) => {
               marginRight: 20,
             }}
           >
-            <Progress />
+            <Progress val={infos.percentage ?? 0} />
           </div>
           <Avatar.Group
             max={{
@@ -100,15 +103,16 @@ const TaskItem = ({ infos = {} }) => {
               },
             }}
           >
-            {infos.assgins.map((user) => {
+            {infos.assignees.map((userId) => {
               return (
                 <Avatar
-                  key={user.userId}
+                  key={userId}
                   style={{
-                    backgroundColor: getRandomRgbColor(),
+                    // backgroundColor: getRandomRgbColor(),
+                    backgroundColor: colorMaps[userId % 5],
                   }}
                 >
-                  {user.name}
+                  {userInfosMap[userId]}
                 </Avatar>
               );
             })}

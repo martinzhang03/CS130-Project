@@ -67,7 +67,7 @@ const TaskStatusBox = ({ infos, status = "wait" }) => {
                 size={16}
               >
                 {infos.tasks.map((task) => {
-                  return <TaskItem key={task.taskId} infos={task} />;
+                  return <TaskItem key={task.task_id} infos={task} />;
                 })}
               </Space>
             </div>

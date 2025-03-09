@@ -28,13 +28,15 @@ http.interceptors.response.use(
         return Promise.reject(response.data?.message ?? "Request Error");
       }
     } else {
-      if (response.status >= 400) {
+      if (response.status === 500) {
+        console.log(response);
         message.error(response.data?.message ?? "Request Error");
       }
       return Promise.reject(response.data?.message ?? "Request Error");
     }
   },
   (error) => {
+    console.log(error);
     message.error(error.message ?? "Request Error");
     return Promise.reject(error);
   }

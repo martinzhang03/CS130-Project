@@ -170,7 +170,14 @@ const Login = () => {
                 <Form.Item name="remember" valuePropName="checked" noStyle>
                   <Checkbox>Remember me</Checkbox>
                 </Form.Item>
-                <Button type="link">Forgot password</Button>
+                <Button
+                  type="link"
+                  onClick={() => {
+                    navigate("/resetpwd");
+                  }}
+                >
+                  Forgot password
+                </Button>
               </Flex>
             </Form.Item>
           </Form>

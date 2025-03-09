@@ -1,19 +1,44 @@
 import { faEllipsis, faTrashCan } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Avatar, Button, Dropdown } from "antd";
+import { Avatar, Button, Dropdown, message } from "antd";
 import dayjs from "dayjs";
-import React from "react";
+import { useAtom, useAtomValue } from "jotai";
+import React, { useState } from "react";
+import { userInofsAtom } from "../../../../components/Layout";
+import { fetchDelTasks } from "../../../../api/task";
+import { reloadTaskAtom } from "../..";
+import ModifyTask from "../../../dashboard/components/ModifyTask";
+import ChangeProgress from "../ChangeProgress";
+import { colorMaps } from "../../../../utils/utils";
 
 const TaskItem = ({
   infos = {
-    name: "",
-    date: "",
-    desc: "",
-    users: [],
+    task_name: "",
+    start_datetime: "",
+    description: "",
+    assignees: [],
   },
 }) => {
+  const [messageApi, contextHolder] = message.useMessage();
+  const userInfoMap = useAtomValue(userInofsAtom);
+  const [, setReload] = useAtom(reloadTaskAtom);
+  const [editInfo, setEditInfo] = useState();
+  const [progressInfo, setProGressInfo] = useState();
+
+  const clickDelTask = (id) => {
+    fetchDelTasks(id)
+      .then((res) => {
+        if (res?.status === "success") {
+          messageApi.success("Success");
+          setReload(true);
+        }
+      })
+      .catch(() => {});
+  };
+
   return (
     <>
+      {contextHolder}
       <div
         style={{
           width: "100%",
@@ -45,14 +70,46 @@ const TaskItem = ({
                 color: "rgba(105, 91, 91, 1)",
               }}
             >
-              {infos.name}
+              {infos.task_name}
             </div>
           </div>
-          <Button
-            type="text"
-            danger
-            icon={<FontAwesomeIcon icon={faTrashCan} />}
-          ></Button>
+          <Dropdown
+            menu={{
+              items: [
+                {
+                  key: "edit",
+                  label: "Edit",
+                },
+                {
+                  key: "status",
+                  label: "Change Status",
+                },
+                {
+                  key: "delete",
+                  label: (
+                    <div
+                      style={{
+                        color: "red",
+                      }}
+                    >
+                      Delete
+                    </div>
+                  ),
+                },
+              ],
+              onClick: ({ key }) => {
+                if (key === "delete") {
+                  clickDelTask(infos.task_id);
+                } else if (key === "edit") {
+                  setEditInfo(infos);
+                } else if (key === "status") {
+                  setProGressInfo(infos);
+                }
+              },
+            }}
+          >
+            <Button icon={<FontAwesomeIcon icon={faEllipsis} />} />
+          </Dropdown>
         </div>
         {/* desc */}
         <div
@@ -65,9 +122,9 @@ const TaskItem = ({
             height: 58,
           }}
           className="multi-line-ellipsis"
-          title={infos.desc}
+          title={infos.description}
         >
-          {infos.desc}
+          {infos.description}
         </div>
         {/* footer */}
         <div
@@ -83,7 +140,7 @@ const TaskItem = ({
               color: "rgba(105, 91, 91, 1)",
             }}
           >
-            {dayjs(infos.date).format("MMM. MM-DD")}
+            {dayjs(infos.start_datetime).format("MMM. MM-DD")}
           </div>
           <Avatar.Group
             max={{
@@ -95,16 +152,46 @@ const TaskItem = ({
             }}
             size={"small"}
           >
-            {infos.users.map((user) => {
+            {infos.assignees.map((userId) => {
               return (
-                <Avatar size={"small"} key={user.userId}>
-                  {user.name}
+                <Avatar
+                  size={"small"}
+                  key={userId}
+                  style={{
+                    backgroundColor: colorMaps[userId % 5],
+                  }}
+                >
+                  {userInfoMap[userId]}
                 </Avatar>
               );
             })}
           </Avatar.Group>
         </div>
       </div>
+
+      <ModifyTask
+        open={editInfo ? true : false}
+        infos={editInfo}
+        onOk={() => {
+          setEditInfo();
+          setReload(true);
+        }}
+        onCancel={() => {
+          setEditInfo();
+        }}
+      />
+
+      <ChangeProgress
+        open={progressInfo ? true : false}
+        infos={progressInfo}
+        onCancel={() => {
+          setProGressInfo();
+        }}
+        onOk={() => {
+          setProGressInfo();
+          setReload(true);
+        }}
+      />
     </>
   );
 };

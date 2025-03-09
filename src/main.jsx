@@ -6,7 +6,7 @@ import "./index.css";
 import "./index.less";
 
 createRoot(document.getElementById("root")).render(
-  <StrictMode>
-      <RouterProvider router={routes}></RouterProvider>
-  </StrictMode>
+  // <StrictMode>
+  <RouterProvider router={routes}></RouterProvider>
+  // </StrictMode>
 );

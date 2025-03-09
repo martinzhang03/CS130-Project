@@ -1,55 +1,25 @@
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Input } from "antd";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import TeamChat from "../../components/TeamChat";
 import TaskStatusBox from "./components/TaskStatuBox";
+import { fetchTasks } from "../../api/task";
+import { atom, useAtom } from "jotai";
 
-const taskInfos = [
+const taskInfos1 = [
   {
     key: "wait",
     label: "Backlog",
 
     tasks: [
       {
-        taskId: 1,
-        name: "Task A",
-        date: "2025-02-18 21:39:00",
-        desc: "This is task desciption",
-        users: [
-          {
-            userId: 1,
-            name: "KL",
-          },
-          {
-            userId: 2,
-            name: "K",
-          },
-          {
-            userId: 3,
-            name: "E",
-          },
-        ],
-      },
-      {
-        taskId: 2,
-        name: "Task B",
-        date: "2025-02-18 21:39:00",
-        desc: "This is task desciption",
-        users: [
-          {
-            userId: 1,
-            name: "KL",
-          },
-          {
-            userId: 2,
-            name: "K",
-          },
-          {
-            userId: 3,
-            name: "E",
-          },
-        ],
+        task_id: 1,
+        task_name: "Task A",
+        start_datetime: "2025-02-18 21:39:00",
+        due_datetime: "2025-02-18 23:39:00",
+        description: "This is task desciption",
+        assignees: [1],
       },
     ],
   },
@@ -57,84 +27,113 @@ const taskInfos = [
     key: "progress",
     label: "In Progress",
 
-    tasks: [
-      {
-        taskId: 3,
-        name: "Task C",
-        date: "2025-02-18 21:39:00",
-        desc: "This is task desciption",
-        users: [
-          {
-            userId: 1,
-            name: "KL",
-          },
-          {
-            userId: 2,
-            name: "K",
-          },
-          {
-            userId: 3,
-            name: "E",
-          },
-        ],
-      },
-    ],
+    tasks: [],
   },
   {
     key: "review",
     label: "Review",
-    tasks: [
-      {
-        taskId: 4,
-        name: "Task D",
-        date: "2025-02-18 21:39:00",
-        desc: "This is task desciption",
-        users: [
-          {
-            userId: 1,
-            name: "KL",
-          },
-          {
-            userId: 2,
-            name: "K",
-          },
-          {
-            userId: 3,
-            name: "E",
-          },
-        ],
-      },
-    ],
+    tasks: [],
   },
   {
     key: "done",
     label: "Done",
-    tasks: [
-      {
-        taskId: 5,
-        name: "Task E",
-        date: "2025-02-18 21:39:00",
-        desc: "This is task desciption",
-        users: [
-          {
-            userId: 1,
-            name: "KL",
-          },
-          {
-            userId: 2,
-            name: "K",
-          },
-          {
-            userId: 3,
-            name: "E",
-          },
-        ],
-      },
-    ],
+    tasks: [],
   },
 ];
 
+export const reloadTaskAtom = atom(false);
+
 const Tasks = () => {
+  const [tasks, setTasks] = useState([]);
+  const [taskInfos, setTaskInfos] = useState([]);
+  const [reload, setReload] = useAtom(reloadTaskAtom);
+
+  const getTaskInfo = () => {
+    fetchTasks()
+      .then((res) => {
+        if (res?.status === "success") {
+          setTasks(res?.user_tasks ?? []);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        setReload(false);
+      });
+  };
+  useEffect(() => {
+    getTaskInfo();
+  }, []);
+
+  useEffect(() => {
+    getTaskInfo();
+  }, [reload]);
+
+  useEffect(() => {
+    if (tasks.length) {
+      console.log(tasks);
+      let waitArr = [],
+        progressArr = [],
+        reviewArr = [],
+        doneArr = [];
+      tasks.map((task) => {
+        if (task.progress !== "Done") {
+          waitArr.push(task);
+        }
+        if (task.progress === "In Progress") {
+          progressArr.push(task);
+        } else if (task.progress === "In Review") {
+          reviewArr.push(task);
+        } else if (task.progress === "Done") {
+          doneArr.push(task);
+        }
+      });
+      setTaskInfos([
+        {
+          key: "wait",
+          label: "Backlog",
+          tasks: waitArr,
+        },
+        {
+          key: "progress",
+          label: "In Progress",
+          tasks: progressArr,
+        },
+        {
+          key: "review",
+          label: "Review",
+          tasks: reviewArr,
+        },
+        {
+          key: "done",
+          label: "Done",
+          tasks: doneArr,
+        },
+      ]);
+    } else {
+      setTaskInfos([
+        {
+          key: "wait",
+          label: "Backlog",
+          tasks: [],
+        },
+        {
+          key: "progress",
+          label: "In Progress",
+          tasks: [],
+        },
+        {
+          key: "review",
+          label: "Review",
+          tasks: [],
+        },
+        {
+          key: "done",
+          label: "Done",
+          tasks: [],
+        },
+      ]);
+    }
+  }, [tasks]);
   return (
     <>
       <div
@@ -157,7 +156,7 @@ const Tasks = () => {
             style={{
               flex: 1,
               width: 0,
-              marginRight: 15,
+              // marginRight: 15,
               borderRadius: 5,
               backgroundColor: "#fff",
               padding: 15,
@@ -179,6 +178,7 @@ const Tasks = () => {
               </div>
               <Input
                 style={{
+                  display: "none",
                   width: 180,
                 }}
                 prefix={<FontAwesomeIcon icon={faMagnifyingGlass} />}
@@ -213,7 +213,8 @@ const Tasks = () => {
               height: "100%",
               borderRadius: 5,
               backgroundColor: "#fff",
-              display: "flex",
+              // display: "flex",
+              display: "none",
               padding: 15,
               flexDirection: "column",
             }}

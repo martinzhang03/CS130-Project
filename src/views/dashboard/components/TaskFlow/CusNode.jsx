@@ -42,7 +42,15 @@ const CusNode = ({ data }) => {
             zIndex: 999,
           }}
         ></div>
-        {data.label}
+        <div
+          style={{
+            overflow: "hidden",
+            whiteSpace: "nowrap",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {data.label}
+        </div>
       </div>
 
       {!data?.isStart && <Handle type="target" position={Position.Left} />}

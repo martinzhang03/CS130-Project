@@ -26,3 +26,34 @@ export const fetchRegister = (data) => {
 export const fetchUsers = (data) => {
   return http.post(`/user/lists`, data);
 };
+
+/**
+ * @description Get user info
+ * @param {*} userId
+ * @returns
+ */
+export const fetchUserInfo = (userId) => {
+  return http.get(`/user/user_id/${userId}`);
+};
+
+/**
+ * @description send reset code
+ * @param {*} data
+ * @returns
+ */
+export const fetchSendCode = (data) => {
+  return http.post(`/user/reset/code`, data);
+};
+
+/**
+ * @description reset pwd
+ * @param {*} data
+ * @returns
+ */
+export const fetchResetPwd = (data) => {
+  return http.post(`/user/reset/confirm`, data);
+};
+
+export const fetchUpdateUserInfo = (data) => {
+  return http.post(`/user/update`, data);
+};

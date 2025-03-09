@@ -1,6 +1,6 @@
 import { faCalendar, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Button, Space } from "antd";
+import { Button, Empty, Space } from "antd";
 import dayjs from "dayjs";
 import React, { useEffect, useMemo, useState } from "react";
 import ModifyTask from "./components/ModifyTask";
@@ -9,136 +9,48 @@ import TeamChat from "../../components/TeamChat";
 import Flow from "./components/TaskFlow";
 import { fetchTasks, fetchTasksByUserId } from "../../api/task";
 
-const taskList = [
-  {
-    taskId: 1,
-    name: "Task A This task foucus on the App design",
-    desc: "This task foucus on the App design.",
-    startTime: "2025-02-18",
-    endTime: "",
-    progress: "0",
-    status: "wait",
-    assgins: [
-      {
-        userId: 1,
-        name: "A",
-      },
-      {
-        userId: 2,
-        name: "B",
-      },
-      {
-        userId: 3,
-        name: "C",
-      },
-      {
-        userId: 4,
-        name: "D",
-      },
-    ],
-  },
-  {
-    taskId: 2,
-    name: "Task B",
-    desc: "This task foucus on the App design.",
-    startTime: "2025-02-18",
-    endTime: "",
-    progress: "0",
-    status: "wait",
-    assgins: [
-      {
-        userId: 1,
-        name: "A",
-      },
-      {
-        userId: 2,
-        name: "B",
-      },
-      {
-        userId: 3,
-        name: "C",
-      },
-      {
-        userId: 4,
-        name: "D",
-      },
-    ],
-  },
-  {
-    taskId: 3,
-    name: "Task C",
-    desc: "This task foucus on the App design.",
-    startTime: "2025-02-18",
-    endTime: "",
-    progress: "0",
-    status: "wait",
-    assgins: [
-      {
-        userId: 1,
-        name: "A",
-      },
-      {
-        userId: 2,
-        name: "B",
-      },
-      {
-        userId: 3,
-        name: "C",
-      },
-      {
-        userId: 4,
-        name: "D",
-      },
-    ],
-  },
-  {
-    taskId: 4,
-    name: "Task D",
-    desc: "This task foucus on the App design.",
-    startTime: "2025-02-18",
-    endTime: "",
-    progress: "0",
-    status: "wait",
-    assgins: [
-      {
-        userId: 1,
-        name: "A",
-      },
-      {
-        userId: 2,
-        name: "B",
-      },
-      {
-        userId: 3,
-        name: "C",
-      },
-      {
-        userId: 4,
-        name: "D",
-      },
-    ],
-  },
-];
-
 const DashBoard = () => {
   const [editTask, setEditTask] = useState(false);
+  const [taskList, setTaskList] = useState([]);
+  const [reload, setReload] = useState(false);
 
-  useEffect(() => {
-    const init = () => {
+  const getTaskList = () => {
+    let userId = localStorage.getItem("tf_user_id");
+    if (userId) {
+      // fetchTasksByUserId(userId)
+      //   .then((res) => {
+      //     console.log(res);
+      //     if(res?.status ==='success'){
+      //       setTaskList(res?.user_task ?? [])
+      //     }
+      //   })
+      //   .catch(() => {})
+      //   .finally(() => {
+      //     // setReload(false);
+      //   });
+
       fetchTasks()
         .then((res) => {
-          console.log(res);
+          if (res?.status === "success") {
+            setTaskList(res?.user_tasks ?? []);
+          }
         })
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => {
+          setReload(false);
+        });
+    }
+  };
 
-      fetchTasksByUserId(1)
-        .then((res) => {
-          console.log(res);
-        })
-        .catch(() => {});
-    };
-    init();
+  useEffect(() => {
+    getTaskList();
   }, []);
+
+  useEffect(() => {
+    if (reload) {
+      getTaskList();
+    }
+  }, [reload]);
 
   return (
     <>
@@ -162,7 +74,7 @@ const DashBoard = () => {
             style={{
               flex: 1,
               width: 0,
-              marginRight: 15,
+              // marginRight: 15,
               borderRadius: 5,
               backgroundColor: "#fff",
               padding: 15,
@@ -225,11 +137,28 @@ const DashBoard = () => {
                 overflowX: "auto",
               }}
             >
-              <Space>
-                {taskList.map((info) => {
-                  return <TaskItem key={info.taskId} infos={info}></TaskItem>;
-                })}
-              </Space>
+              {taskList.length !== 0 ? (
+                <Space>
+                  {taskList.map((info, index) => {
+                    return <TaskItem key={index} infos={info} />;
+                  })}
+                </Space>
+              ) : (
+                <div
+                  style={{
+                    width: "100%",
+                    height: 161,
+                    overflow: "hidden",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: "#fff",
+                    borderRadius: 5,
+                  }}
+                >
+                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                </div>
+              )}
             </div>
             {/* task view */}
 
@@ -246,17 +175,18 @@ const DashBoard = () => {
                   height: "100%",
                 }}
               >
-                <Flow />
+                <Flow taskList={taskList} />
               </div>
             </div>
           </div>
           <div
             style={{
+              display: "none",
               width: 300,
               height: "100%",
               borderRadius: 5,
               backgroundColor: "#fff",
-              display: "flex",
+              // display: "flex",
               padding: 15,
               flexDirection: "column",
             }}
@@ -282,6 +212,7 @@ const DashBoard = () => {
         open={editTask}
         onCancel={() => {
           setEditTask(false);
+          setReload(true);
         }}
       />
     </>
