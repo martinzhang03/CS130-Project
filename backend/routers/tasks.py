@@ -24,6 +24,10 @@ async def create_task(data: schemas.TaskCreate, db: asyncpg.Connection = Depends
             await insert_assignments(db, data, task_id)
 
         data.task_id = task_id
+        task_graph = await fetch_task_dependencies(db)
+        cycles = detect_cycles(task_graph)
+        if cycles:       
+            return {"status": "fail", "message": "Dependency cycles detected.", "cycles": cycles}
         return data
     except asyncpg.PostgresError as e:
         return {"status": "fail", "message": f"Database error: {str(e)}"}
@@ -83,6 +87,10 @@ async def get_dependencies_by_task_id(task_id: int, db:asyncpg.Connection = Depe
 @router.post("/task_edit/{task_id}", summary="Edit task with given task ID")
 async def put_task_by_task_id(task: schemas.TaskEdit, db: asyncpg.Connection = Depends(get_db)):
     result = await update_task(db, task)
+    task_graph = await fetch_task_dependencies(db)
+    cycles = detect_cycles(task_graph)
+    if cycles:       
+        return {"status": "fail", "message": "Dependency cycles detected.", "cycles": cycles}
     return result
 
 @router.delete("/task_id/{task_id}", summary="Delete task with given task id")
@@ -90,6 +98,10 @@ async def delete_task_by_task_id(task_id: int, db:asyncpg.Connection = Depends(g
     success = await delete_task(db, task_id)
     if not success:
         return {"status": "fail", "message": f"deletion failed"}
+    task_graph = await fetch_task_dependencies(db)
+    cycles = detect_cycles(task_graph)
+    if cycles:       
+        return {"status": "fail", "message": "Dependency cycles detected.", "cycles": cycles}
     return {"status": "success", "message": "Task deleted successfully"}
 
 @router.post("/task_progress/{task_id}", summary="Update Task Progress")
