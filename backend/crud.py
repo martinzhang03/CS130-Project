@@ -66,7 +66,7 @@ async def insert_temp_user(db: asyncpg.Connection, email: str, salt: str, code: 
 #         user = await db.fetchrow(query, email)
         insert_query = """
             INSERT INTO users (email, salt, password, created_at, user_type, login_at, login, username, firstname)
-             VALUES ($1, $2, $3, $4, 'formal', $5, TRUE, $6, $7)
+            VALUES ($1, $2, $3, $4, 'formal', $5, TRUE, $6, $7)
         """
         await db.execute(insert_query, email, salt, code, datetime.datetime.now(), datetime.datetime.now(), username, firstname)
         return True
@@ -74,7 +74,7 @@ async def insert_temp_user(db: asyncpg.Connection, email: str, salt: str, code: 
     except Exception as e:
         print(f"Error inserting/updating user: {e}")
         return False
-    
+
 async def update_user_credentials(db: asyncpg.Connection, email: str, password: str, salt: str):
     query = """
     UPDATE users 
@@ -83,9 +83,9 @@ async def update_user_credentials(db: asyncpg.Connection, email: str, password: 
     RETURNING id, username, email, created_at, user_type, login_at, login;
     """
     user = await db.fetchrow(query, password, salt, email)
-
+    
     return dict(user) if user else None  
- 
+
 async def user_login(db: asyncpg.Connection, email: str) -> Optional[Tuple[int, str]]:
     query = """
     SELECT id, username FROM users 
@@ -105,14 +105,14 @@ async def user_login(db: asyncpg.Connection, email: str) -> Optional[Tuple[int, 
     return None
 
 async def logout_user(db: asyncpg.Connection, email: str) -> bool:
-     query = """
-     UPDATE users 
-     SET login = FALSE, login_at = NULL
-     WHERE email = $1
-     """
-     result = await db.execute(query, email)
-     
-     return result == "UPDATE 1"
+    query = """
+    UPDATE users 
+    SET login = FALSE, login_at = NULL
+    WHERE email = $1
+    """
+    result = await db.execute(query, email)
+    
+    return result == "UPDATE 1"
 
 async def check_login_status(conn: asyncpg.Connection, id: str) -> bool:
     id = int(id)
@@ -224,22 +224,24 @@ def db_task_to_taskfetch(row: asyncpg.Record) -> schemas.TaskFetch:
         created_at = row["created_at"],
         dependencies = row["dependencies"],
         assignees = row["assignees"],
-         progress = row["progress"],
+        progress = row["progress"],
+        percentage = row["percentage"],
     )
 
 def rows_to_taskusermap(rows: List[asyncpg.Record]) -> schemas.TaskUserMap:
     task_list = []  # Store tasks directly in a list
+    
     for row in rows:
         task = db_task_to_taskfetch(row)  # Convert the row to TaskFetch format
         print(f"task is {task}")
         task_list.append(task)
- 
+
     return schemas.TaskUserMap(status="success", user_tasks=task_list)
 
 
 async def select_task_by_task_id(db: asyncpg.Connection, task_id: int) -> Optional[schemas.TaskFetch]:
     query = """
-        SELECT id AS task_id, title, description, start_datetime, due_datetime, created_at, dependencies
+        SELECT id AS task_id, title, description, start_datetime, due_datetime, created_at, dependencies, assignees, progress, percentage
         FROM tasks
         WHERE id = $1;
     """
@@ -252,7 +254,7 @@ async def select_task_by_task_id(db: asyncpg.Connection, task_id: int) -> Option
 # Returns tasks that depend on {task_id} (Tasks with {task_id} in their dependency list)
 async def select_task_dependencies(db: asyncpg.Connection, task_id: int) -> List[schemas.TaskFetch]:
     query = """
-        SELECT id AS task_id, title, description, start_datetime, due_datetime, created_at, dependencies
+        SELECT id AS task_id, title, description, start_datetime, due_datetime, created_at, dependencies, assignees, progress, percentage
         FROM tasks
         WHERE dependencies @> ARRAY[$1]::integer[];
     """
@@ -261,9 +263,9 @@ async def select_task_dependencies(db: asyncpg.Connection, task_id: int) -> List
     return [db_task_to_taskfetch(row) for row in rows]
 
 
- # Fetch all tasks and their dependencies as an adjacency list.
+# Fetch all tasks and their dependencies as an adjacency list.
 async def fetch_task_dependencies(db: asyncpg.Connection) -> Dict[int, List[int]]:
- 
+
     query = "SELECT id, dependencies FROM tasks;"
     rows = await db.fetch(query)
 
@@ -274,7 +276,7 @@ async def fetch_task_dependencies(db: asyncpg.Connection) -> Dict[int, List[int]
         task_graph[task_id] = dependencies
 
     return task_graph
- 
+
 
 async def select_tasks_by_user(db: asyncpg.Connection) -> schemas.TaskUserMap:
     query = """
@@ -288,37 +290,49 @@ async def select_tasks_by_user(db: asyncpg.Connection) -> schemas.TaskUserMap:
             t.created_at, 
             t.dependencies, 
             t.assignees,  
-            t.progress 
+            t.progress,
+            t.percentage    
         FROM tasks t
-        WHERE $1::INTEGER = ANY(t.assignees)  -- Explicitly cast $1 to INTEGER
+        JOIN assignments a ON t.id = a.task_id
+        ORDER BY a.user_id;
     """
     rows = await db.fetch(query)
-    print(f"Result rows are {rows}")
     result = rows_to_taskusermap(rows)
 
     return result
 
 async def select_tasks_where_user(db: asyncpg.Connection, user_id: int) -> schemas.TaskUserMap:
     query = """
-        SELECT a.user_id, t.id AS task_id, t.title, t.description, t.start_datetime, t.due_datetime, t.created_at, t.dependencies
+        SELECT 
+            $1::INTEGER AS user_id,  -- Ensure $1 is treated as an integer
+            t.id AS task_id, 
+            t.title, 
+            t.description, 
+            t.start_datetime, 
+            t.due_datetime, 
+            t.created_at, 
+            t.dependencies, 
+            t.assignees,  
+            t.progress,
+            t.percentage    
         FROM tasks t
-        JOIN assignments a ON t.id = a.task_id
-        WHERE a.user_id = $1
+        WHERE $1::INTEGER = ANY(t.assignees)  -- Explicitly cast $1 to INTEGER
     """
     rows = await db.fetch(query, user_id)
+    print(f"Result rows are {rows}")
     result = rows_to_taskusermap(rows)
 
     return result
 
 async def update_task_progress(db: asyncpg.Connection, task_id: int, up: bool, down: bool) -> str:
-    
     progress_chain = ["In Progress", "Review", "Done"]
+    progress_percentage = {"In Progress": 33, "Review": 67, "Done": 100}
 
     query_select = "SELECT progress FROM tasks WHERE id = $1;"
     current_progress = await db.fetchval(query_select, task_id)
     
     if current_progress not in progress_chain:
-        return None 
+        return None
 
     index = progress_chain.index(current_progress)
 
@@ -329,15 +343,18 @@ async def update_task_progress(db: asyncpg.Connection, task_id: int, up: bool, d
     else:
         return current_progress
 
+    new_percentage = progress_percentage[new_progress]
+
     query_update = """
     UPDATE tasks
-    SET progress = $1
-    WHERE id = $2
+    SET progress = $1, percentage = $2
+    WHERE id = $3
     RETURNING progress;
     """
-    updated_progress = await db.fetchval(query_update, new_progress, task_id)
+    updated_progress = await db.fetchval(query_update, new_progress, new_percentage, task_id)
 
     return updated_progress
+
 
 async def delete_task(db: asyncpg.Connection, task_id: int) -> bool:
     query = "DELETE FROM tasks WHERE id = $1 RETURNING id;"
