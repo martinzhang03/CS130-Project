@@ -22,7 +22,7 @@ const Register = () => {
           password: vals.password,
         })
           .then((res) => {
-            messageApi.success("Success");
+            messageApi.success(res?.message ?? "Success");
             if (res.status === "success") {
               localStorage.setItem("tf_token", res.jwt_token);
               localStorage.setItem("tf_user_id", res.user_id);

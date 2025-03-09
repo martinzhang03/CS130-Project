@@ -120,7 +120,7 @@ const Flow = ({ taskList = [] }) => {
       edges = [];
     if (taskList.length) {
       let parents = getAllParentIds(taskList);
-      console.log(parents);
+
       taskList.map((task) => {
         let info = calcSize(task);
         let isStart = !task.dependencies?.length ? true : false;
@@ -150,7 +150,7 @@ const Flow = ({ taskList = [] }) => {
         }
       });
     }
-    console.log(nodes, edges);
+
     setNodes(nodes);
     setEdges(edges);
   }, [taskList, calcSize]);
@@ -174,7 +174,7 @@ const Flow = ({ taskList = [] }) => {
   const getDateArr = (startDate, endDate) => {
     let arr = [],
       len = dayjs(endDate).diff(dayjs(startDate), "day");
-    for (let i = 0; i < len; i++) {
+    for (let i = 0; i <= len; i++) {
       arr.push(dayjs(startDate).add(i, "day").format("YYYY-MM-DD"));
     }
     return arr;

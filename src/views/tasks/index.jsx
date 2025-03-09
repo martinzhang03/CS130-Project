@@ -7,7 +7,7 @@ import TaskStatusBox from "./components/TaskStatuBox";
 import { fetchTasks } from "../../api/task";
 import { atom, useAtom } from "jotai";
 
-const taskInfos = [
+const taskInfos1 = [
   {
     key: "wait",
     label: "Backlog",
@@ -45,7 +45,7 @@ export const reloadTaskAtom = atom(false);
 
 const Tasks = () => {
   const [tasks, setTasks] = useState([]);
-  const [taskInfos1, setTaskInfos] = useState([]);
+  const [taskInfos, setTaskInfos] = useState([]);
   const [reload, setReload] = useAtom(reloadTaskAtom);
 
   const getTaskInfo = () => {
@@ -76,9 +76,10 @@ const Tasks = () => {
         reviewArr = [],
         doneArr = [];
       tasks.map((task) => {
-        if (task.progress === "Wait") {
+        if (task.progress !== "Done") {
           waitArr.push(task);
-        } else if (task.progress === "In Progress") {
+        }
+        if (task.progress === "In Progress") {
           progressArr.push(task);
         } else if (task.progress === "In Review") {
           reviewArr.push(task);

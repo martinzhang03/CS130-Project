@@ -1,6 +1,6 @@
 import React from "react";
 
-const Progress = ({ val = 30 }) => {
+const Progress = ({ val = 0 }) => {
   return (
     <>
       <div

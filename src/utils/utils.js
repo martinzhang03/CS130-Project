@@ -6,3 +6,11 @@ export const getRandomRgbColor = () => {
   // 返回 RGB 颜色字符串
   return `rgb(${r}, ${g}, ${b})`;
 };
+
+export const colorMaps = {
+  0: "#DCB007",
+  1: "#A4A202",
+  2: "#36974A",
+  3: "#583B6B",
+  4: "#452453",
+};

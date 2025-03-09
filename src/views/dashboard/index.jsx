@@ -9,37 +9,6 @@ import TeamChat from "../../components/TeamChat";
 import Flow from "./components/TaskFlow";
 import { fetchTasks, fetchTasksByUserId } from "../../api/task";
 
-// assignees
-// :
-// [1]
-// created_at
-// :
-// "2025-03-08T06:06:50.576104"
-// dependencies
-// :
-// []
-// description
-// :
-// "task a desc info"
-// due_datetime
-// :
-// "2025-03-07T03:00:00"
-// progress
-// :
-// "In Progress"
-// start_datetime
-// :
-// "2025-03-07T01:00:00"
-// status
-// :
-// "success"
-// task_id
-// :
-// 1
-// task_name
-// :
-// "Task A"
-
 const DashBoard = () => {
   const [editTask, setEditTask] = useState(false);
   const [taskList, setTaskList] = useState([]);

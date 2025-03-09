@@ -23,7 +23,7 @@ const Header = () => {
     const update = () => {
       let name = localStorage.getItem("tf_user_name");
       if (name) setUserName(name);
-      set;
+      // set;
     };
     if (updateName) update();
   }, [updateName]);
@@ -84,6 +84,7 @@ const Header = () => {
             <Avatar
               style={{
                 backgroundColor: "#fde3cf",
+
                 color: "#f56a00",
                 cursor: "pointer",
               }}

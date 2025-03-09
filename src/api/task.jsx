@@ -10,7 +10,7 @@ export const fetchCreateTask = (data) => {
 };
 
 export const fetchUpdateTask = (data) => {
-  return http.put(`/tasks`, data);
+  return http.post(`/tasks/task_edit/${data.task_id}`, data);
 };
 
 /**
@@ -27,4 +27,8 @@ export const fetchTasksByUserId = (id) => {
 
 export const fetchDelTasks = (id) => {
   return http.delete(`/tasks/task_id/${id}`);
+};
+
+export const fetchChangeProgress = (data) => {
+  return http.post(`/tasks/task_progress/${data.task_id}`, data);
 };

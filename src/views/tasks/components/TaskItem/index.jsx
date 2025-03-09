@@ -8,6 +8,8 @@ import { userInofsAtom } from "../../../../components/Layout";
 import { fetchDelTasks } from "../../../../api/task";
 import { reloadTaskAtom } from "../..";
 import ModifyTask from "../../../dashboard/components/ModifyTask";
+import ChangeProgress from "../ChangeProgress";
+import { colorMaps } from "../../../../utils/utils";
 
 const TaskItem = ({
   infos = {
@@ -21,6 +23,7 @@ const TaskItem = ({
   const userInfoMap = useAtomValue(userInofsAtom);
   const [, setReload] = useAtom(reloadTaskAtom);
   const [editInfo, setEditInfo] = useState();
+  const [progressInfo, setProGressInfo] = useState();
 
   const clickDelTask = (id) => {
     fetchDelTasks(id)
@@ -99,6 +102,8 @@ const TaskItem = ({
                   clickDelTask(infos.task_id);
                 } else if (key === "edit") {
                   setEditInfo(infos);
+                } else if (key === "status") {
+                  setProGressInfo(infos);
                 }
               },
             }}
@@ -149,7 +154,13 @@ const TaskItem = ({
           >
             {infos.assignees.map((userId) => {
               return (
-                <Avatar size={"small"} key={userId}>
+                <Avatar
+                  size={"small"}
+                  key={userId}
+                  style={{
+                    backgroundColor: colorMaps[userId % 5],
+                  }}
+                >
                   {userInfoMap[userId]}
                 </Avatar>
               );
@@ -167,6 +178,18 @@ const TaskItem = ({
         }}
         onCancel={() => {
           setEditInfo();
+        }}
+      />
+
+      <ChangeProgress
+        open={progressInfo ? true : false}
+        infos={progressInfo}
+        onCancel={() => {
+          setProGressInfo();
+        }}
+        onOk={() => {
+          setProGressInfo();
+          setReload(true);
         }}
       />
     </>

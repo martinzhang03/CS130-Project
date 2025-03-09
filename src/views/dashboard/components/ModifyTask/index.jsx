@@ -20,6 +20,7 @@ import {
   fetchUpdateTask,
 } from "../../../../api/task";
 import dayjs from "dayjs";
+import { faTruckRampBox } from "@fortawesome/free-solid-svg-icons";
 const { TextArea } = Input;
 
 const ModifyTask = ({ open = false, infos, onOk, onCancel }) => {
@@ -53,13 +54,14 @@ const ModifyTask = ({ open = false, infos, onOk, onCancel }) => {
           assignees: vals.assignees,
           description: vals.description,
           progress: vals.progress,
+          percentage: vals.percentage,
         };
         console.log(info);
-        if (infos) {
+        if (!infos) {
           fetchCreateTask(info)
             .then((res) => {
               if (res?.status === "success") {
-                messageApi.success("Success");
+                messageApi.success(res?.message ?? "Success");
                 _onCancel();
               }
             })
@@ -68,7 +70,7 @@ const ModifyTask = ({ open = false, infos, onOk, onCancel }) => {
           fetchUpdateTask(info)
             .then((res) => {
               if (res?.status === "success") {
-                messageApi.success("Success");
+                messageApi.success(res?.message ?? "Success");
                 _onOk();
               }
             })
@@ -232,7 +234,11 @@ const ModifyTask = ({ open = false, infos, onOk, onCancel }) => {
           >
             <Select
               allowClear
-              options={tasks}
+              options={
+                infos
+                  ? tasks.filter((task) => task.task_id != infos.task_id)
+                  : tasks
+              }
               fieldNames={{
                 label: "task_name",
                 value: "task_id",
@@ -240,13 +246,17 @@ const ModifyTask = ({ open = false, infos, onOk, onCancel }) => {
               placeholder="Dependency"
             />
           </Form.Item>
-          <Form.Item name="progress" label="progress">
-            <Slider
-              tooltip={{
-                formatter: (value) => `${value}%`,
-              }}
-            />
-          </Form.Item>
+          {infos && (
+            <Form.Item name="percentage" label="percentage">
+              <Slider
+                tooltip={{
+                  formatter: (value) => `${value}%`,
+                }}
+              />
+            </Form.Item>
+          )}
+
+          <Form.Item name="progress" label="progress" hidden={true}></Form.Item>
           <Form.Item name="description" label="Description">
             <TextArea
               autoSize={{ minRows: 4, maxRows: 4 }}

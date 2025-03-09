@@ -32,9 +32,10 @@ const UserInfo = ({ open = false, onOk, onCancel }) => {
         }).then((res) => {
           if (res?.status === "success") {
             messageApi.success("Success");
-            setIsEdit(true);
+            setIsEdit(false);
             localStorage.setItem("tf_user_name", val.user_name);
             setUpdateName(true);
+            _onCancel();
           }
         });
       })

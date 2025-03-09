@@ -2,7 +2,7 @@ import { Avatar } from "antd";
 import dayjs from "dayjs";
 import React from "react";
 import Progress from "../Progress";
-import { getRandomRgbColor } from "../../../../utils/utils";
+import { colorMaps, getRandomRgbColor } from "../../../../utils/utils";
 import { useAtom, useAtomValue } from "jotai";
 import { userInofsAtom } from "../../../../components/Layout";
 
@@ -92,7 +92,7 @@ const TaskItem = ({ infos = {} }) => {
               marginRight: 20,
             }}
           >
-            <Progress />
+            <Progress val={infos.percentage ?? 0} />
           </div>
           <Avatar.Group
             max={{
@@ -108,7 +108,8 @@ const TaskItem = ({ infos = {} }) => {
                 <Avatar
                   key={userId}
                   style={{
-                    backgroundColor: getRandomRgbColor(),
+                    // backgroundColor: getRandomRgbColor(),
+                    backgroundColor: colorMaps[userId % 5],
                   }}
                 >
                   {userInfosMap[userId]}
