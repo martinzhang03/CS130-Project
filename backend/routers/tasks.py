@@ -93,7 +93,7 @@ async def delete_task_by_task_id(task_id: int, db:asyncpg.Connection = Depends(g
     return {"status": "success", "message": "Task deleted successfully"}
 
 @router.post("/task_progress/{task_id}", summary="Update Task Progress")
-async def update_task_progress(data: schemas.TaskProgress, db:asyncpg.Connection = Depends(get_db)):
+async def update_progress(data: schemas.TaskProgress, db:asyncpg.Connection = Depends(get_db)):
     success = await update_task_progress(db, data.task_id, data.up, data.down)
     if success is not None:
         if success == "Review":

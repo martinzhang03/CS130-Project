@@ -25,6 +25,7 @@ class TaskFetch(BaseModel):
     assignees: List[int] = Field(default=[], title="Assignees", description="User IDs assigned to this task")
     progress: str = Field(..., title="Progress")
     description: str = Field(..., title="Description", max_length=1000)
+    percentage: int = Field(..., title="percentage", description="The percentage of task completion")
 
 class TaskUserMap(BaseModel):
     status: str = Field(default="success", title="Response Status")
@@ -46,6 +47,7 @@ class TaskEdit(BaseModel):
     dependencies: List[int] = Field(default=[], title="Dependencies", description="List of dependent task IDs")
     assignees: List[int] = Field(default=[], title="Assignees", description="User IDs assigned to this task")
     description: str = Field(..., title="Description", max_length=1000)
+    percentage: int = Field(..., title="percentage", description="The percentage of task completion")
 
 class UserRegister(BaseModel):
     first_name: str

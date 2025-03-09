@@ -235,6 +235,18 @@ def rows_to_taskusermap(rows: List[asyncpg.Record]) -> schemas.TaskUserMap:
         task = db_task_to_taskfetch(row)  # Convert the row to TaskFetch format
         print(f"task is {task}")
         task_list.append(task)
+        
+    def remove_duplicates(task_list):
+        seen = set()
+        unique_tasks = []
+        
+        for task in task_list:
+            if task.task_id not in seen:
+                seen.add(task.task_id)
+                unique_tasks.append(task)
+        
+        return unique_tasks
+    task_list = remove_duplicates(task_list)
 
     return schemas.TaskUserMap(status="success", user_tasks=task_list)
 
@@ -382,8 +394,9 @@ async def update_task(db: asyncpg.Connection, task: schemas.TaskEdit) -> dict:
         due_datetime = $3, 
         dependencies = $4, 
         assignees = $5, 
-        description = $6
-    WHERE id = $7
+        description = $6,
+        percentage = $7
+    WHERE id = $8
     RETURNING id;
     """
     result = await db.fetchval(
@@ -393,7 +406,8 @@ async def update_task(db: asyncpg.Connection, task: schemas.TaskEdit) -> dict:
         due_datetime, 
         task.dependencies, 
         task.assignees, 
-        task.description, 
+        task.description,
+        task.percentage, 
         task.task_id
     )
 
