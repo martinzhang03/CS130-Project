@@ -4,6 +4,7 @@ from fastapi.routing import APIRoute
 from datetime import datetime, timedelta
 from collections import defaultdict
 import asyncio
+import psutil
 from typing import Dict, Tuple, List
 from database import get_db
 import logging
@@ -21,9 +22,19 @@ class APIMonitor:
         self.peak_users = 0
         self.current_users = 0
         self.db_pool = None
+        self.error_count = 0 
+        self.response_times = []
+        self.cpu_usage = 0.0
+        self.memory_usage = 0.0
+        self.uptime = 0
         
         asyncio.create_task(self.database_size_monitor())
         asyncio.create_task(self.user_count_monitor())
+        asyncio.create_task(self.database_size_monitor())
+        asyncio.create_task(self.user_count_monitor())
+
+        asyncio.create_task(self.system_health_monitor())
+        asyncio.create_task(self.alert_checker())
 
     async def connect_db(self):
         if not self.db_pool:
@@ -63,6 +74,50 @@ class APIMonitor:
                 logger.error(f"User count monitoring error: {str(e)}")
             
             await asyncio.sleep(30)
+    async def system_health_monitor(self):
+        while True:
+            try:
+                # Track CPU/memory usage
+                self.cpu_usage = psutil.cpu_percent()
+                self.memory_usage = psutil.virtual_memory().percent
+                # Track uptime
+                self.uptime += 5  # Update every 5 seconds
+                
+                logger.info(
+                    f"System Health - CPU: {self.cpu_usage}% | "
+                    f"Memory: {self.memory_usage}% | Uptime: {self.uptime}s"
+                )
+                
+            except Exception as e:
+                logger.error(f"System health monitoring error: {str(e)}")
+            
+            await asyncio.sleep(5)
+
+    async def alert_checker(self):
+        while True:
+            try:
+                # P0
+                if len(self.api_timestamps) == 0 or max(
+                    [max(times) for times in self.api_timestamps.values()]
+                ) < datetime.now() - timedelta(minutes=30):
+                    self.send_alert("P0", "Service is down")
+                    
+                # P1
+                if self.cpu_usage > 80 or self.memory_usage > 80:
+                    self.send_alert("P1", 
+                        f"High resource usage (CPU: {self.cpu_usage}%, Memory: {self.memory_usage}%)")
+                total_calls = sum(self.api_counts.values())
+                error_rate = (self.error_count / total_calls) * 100 if total_calls > 0 else 0
+                if error_rate > 2:
+                    self.send_alert("P1", f"High error rate: {error_rate:.1f}%")
+                    
+            except Exception as e:
+                logger.error(f"Alert check failed: {str(e)}")
+            
+            await asyncio.sleep(60)
+
+    def send_alert(self, priority: str, message: str):
+        logger.critical(f"ALERT {priority}: {message}")
 
     def track_api_call(self, path: str):
         now = datetime.now()
@@ -94,17 +149,16 @@ class LoggingMiddleware(APIRoute):
 
         async def custom_route_handler(request: Request) -> Response:
             start_time = datetime.now()
-            response = await original_route_handler(request)
-            
-            path = request.url.path
-            self.monitor.track_api_call(path)
-            
+            try:
+                response = await original_route_handler(request)
+            except Exception as e:
+                response = Response(content=str(e), status_code=500)
+                self.monitor.error_count += 1
+                
             duration = (datetime.now() - start_time).total_seconds() * 1000
-            logger.info(
-                f"{request.method} {path} - Status: {response.status_code} "
-                f"- Duration: {duration:.2f}ms"
-            )
+            self.monitor.response_times.append(duration)
             
+            if len(self.monitor.response_times) > 1000:
+                self.monitor.response_times.pop(0)
+                
             return response
-
-        return custom_route_handler
