@@ -65,8 +65,8 @@ async def insert_temp_user(db: asyncpg.Connection, email: str, salt: str, code: 
         # query = "SELECT id, user_type, password, salt, created_at FROM users WHERE email = $1 AND user_type = 'formal'"
 #         user = await db.fetchrow(query, email)
         insert_query = """
-            INSERT INTO users (email, salt, password, created_at, user_type, login_at, login, username, firstname)
-            VALUES ($1, $2, $3, $4, 'formal', $5, TRUE, $6, $7)
+            INSERT INTO users (email, salt, password, created_at, user_type, login_at, login, username)
+            VALUES ($1, $2, $3, $4, 'formal', $5, TRUE, $6)
         """
         await db.execute(insert_query, email, salt, code, datetime.datetime.now(), datetime.datetime.now(), username, firstname)
         return True
@@ -74,19 +74,8 @@ async def insert_temp_user(db: asyncpg.Connection, email: str, salt: str, code: 
     except Exception as e:
         print(f"Error inserting/updating user: {e}")
         return False
-
-async def update_user_credentials(db: asyncpg.Connection, email: str, password: str, salt: str):
-    query = """
-    UPDATE users 
-    SET password = $1, salt = $2
-    WHERE email = $3
-    RETURNING id, username, email, created_at, user_type, login_at, login;
-    """
-    user = await db.fetchrow(query, password, salt, email)
     
-    return dict(user) if user else None  
-
-async def user_login(db: asyncpg.Connection, email: str) -> Optional[Tuple[int, str]]:
+async def user_login(db: asyncpg.Connection, email: str):
     query = """
     SELECT id, username FROM users 
     WHERE email = $1 AND user_type = 'formal'
@@ -103,16 +92,6 @@ async def user_login(db: asyncpg.Connection, email: str) -> Optional[Tuple[int, 
         return user['id'], user['username']
     
     return None
-
-async def logout_user(db: asyncpg.Connection, email: str) -> bool:
-    query = """
-    UPDATE users 
-    SET login = FALSE, login_at = NULL
-    WHERE email = $1
-    """
-    result = await db.execute(query, email)
-    
-    return result == "UPDATE 1"
 
 async def check_login_status(conn: asyncpg.Connection, id: str) -> bool:
     id = int(id)
@@ -223,21 +202,16 @@ def db_task_to_taskfetch(row: asyncpg.Record) -> schemas.TaskFetch:
         due_datetime = row["due_datetime"],
         created_at = row["created_at"],
         dependencies = row["dependencies"],
-        assignees = row["assignees"],
-        progress = row["progress"],
-        percentage = row["percentage"],
     )
 
 def rows_to_taskusermap(rows: List[asyncpg.Record]) -> schemas.TaskUserMap:
-    task_list = []  # Store tasks directly in a list
-    
+    task_mapping = defaultdict(list)
     for row in rows:
-        task = db_task_to_taskfetch(row)  # Convert the row to TaskFetch format
-        print(f"task is {task}")
-        task_list.append(task)
+        user_id = row["user_id"]
+        task = db_task_to_taskfetch(row)
+        task_mapping[user_id].append(task)
 
-    return schemas.TaskUserMap(status="success", user_tasks=task_list)
-
+    return schemas.TaskUserMap(user_tasks = task_mapping) 
 
 async def select_task_by_task_id(db: asyncpg.Connection, task_id: int) -> Optional[schemas.TaskFetch]:
     query = """
@@ -262,41 +236,14 @@ async def select_task_dependencies(db: asyncpg.Connection, task_id: int) -> List
     
     return [db_task_to_taskfetch(row) for row in rows]
 
-
-# Fetch all tasks and their dependencies as an adjacency list.
-async def fetch_task_dependencies(db: asyncpg.Connection) -> Dict[int, List[int]]:
-
-    query = "SELECT id, dependencies FROM tasks;"
-    rows = await db.fetch(query)
-
-    task_graph = {}
-    for row in rows:
-        task_id = row["id"]
-        dependencies = row["dependencies"] or []
-        task_graph[task_id] = dependencies
-
-    return task_graph
-
-
 async def select_tasks_by_user(db: asyncpg.Connection) -> schemas.TaskUserMap:
     query = """
-        SELECT 
-            a.user_id, 
-            t.id AS task_id, 
-            t.title, 
-            t.description, 
-            t.start_datetime, 
-            t.due_datetime, 
-            t.created_at, 
-            t.dependencies, 
-            t.assignees,  
-            t.progress,
-            t.percentage    
+        SELECT a.user_id, t.id AS task_id, t.title, t.description, t.start_datetime, t.due_datetime, t.created_at, t.dependencies
         FROM tasks t
-        JOIN assignments a ON t.id = a.task_id
-        ORDER BY a.user_id;
+        WHERE $1::INTEGER = ANY(t.assignees)  -- Explicitly cast $1 to INTEGER
     """
     rows = await db.fetch(query)
+    print(f"Result rows are {rows}")
     result = rows_to_taskusermap(rows)
 
     return result
