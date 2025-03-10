@@ -265,6 +265,21 @@ async def select_task_by_task_id(db: asyncpg.Connection, task_id: int) -> Option
 
 # Returns tasks that depend on {task_id} (Tasks with {task_id} in their dependency list)
 async def select_task_dependencies(db: asyncpg.Connection, task_id: int) -> List[schemas.TaskFetch]:
+    task = await select_task_by_task_id(db, task_id)
+    
+    if task is None:
+        return []
+    
+    if task.dependencies is not None:
+        ret = []
+        for a in list(task.dependencies):
+            ret.append(await select_task_by_task_id(db, task_id))
+        return ret
+    else:
+        return []
+
+#Returns tasks that depend on the given task id
+async def select_all_that_depends_on(db: asyncpg.Connection, task_id: int) -> List[schemas.TaskFetch]:
     query = """
         SELECT id AS task_id, title, description, start_datetime, due_datetime, created_at, dependencies, assignees, progress, percentage
         FROM tasks
@@ -273,7 +288,6 @@ async def select_task_dependencies(db: asyncpg.Connection, task_id: int) -> List
     rows = await db.fetch(query, task_id)
     
     return [db_task_to_taskfetch(row) for row in rows]
-
 
 # Fetch all tasks and their dependencies as an adjacency list.
 async def fetch_task_dependencies(db: asyncpg.Connection) -> Dict[int, List[int]]:

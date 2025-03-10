@@ -70,7 +70,7 @@ async def get_task_by_task_id(task_id: int, db:asyncpg.Connection = Depends(get_
     except Exception as e:
         return {"status": "fail", "message": f"An error occurred: {str(e)}"}
 
-@router.get("/task_id/{task_id}", summary="Fetch dependencies by task id")
+@router.get("/task_id/{task_id}/dependency", summary="Fetch dependencies by task id")
 async def get_dependencies_by_task_id(task_id: int, db:asyncpg.Connection = Depends(get_db)):
     try:
         dependencies = await select_task_dependencies(db, task_id)
