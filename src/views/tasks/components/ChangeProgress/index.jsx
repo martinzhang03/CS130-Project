@@ -19,8 +19,8 @@ const ChangeProgress = ({ open = false, infos, onOk, onCancel }) => {
         console.log(vals);
         fetchChangeProgress({
           task_id: infos.task_id,
-          up: vals.direct == "prev" ? true : false,
-          down: vals.direct == "next" ? true : false,
+          up: vals.direct == "next" ? true : false,
+          down: vals.direct == "prev" ? true : false,
         }).then((res) => {
           if (res?.status === "success") {
             messageApi.success(res?.message ?? "Success");

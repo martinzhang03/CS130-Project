@@ -4,42 +4,8 @@ import { Input } from "antd";
 import React, { useEffect, useState } from "react";
 import TeamChat from "../../components/TeamChat";
 import TaskStatusBox from "./components/TaskStatuBox";
-import { fetchTasks } from "../../api/task";
+import { fetchTasks, fetchTasksByUserId } from "../../api/task";
 import { atom, useAtom } from "jotai";
-
-const taskInfos1 = [
-  {
-    key: "wait",
-    label: "Backlog",
-
-    tasks: [
-      {
-        task_id: 1,
-        task_name: "Task A",
-        start_datetime: "2025-02-18 21:39:00",
-        due_datetime: "2025-02-18 23:39:00",
-        description: "This is task desciption",
-        assignees: [1],
-      },
-    ],
-  },
-  {
-    key: "progress",
-    label: "In Progress",
-
-    tasks: [],
-  },
-  {
-    key: "review",
-    label: "Review",
-    tasks: [],
-  },
-  {
-    key: "done",
-    label: "Done",
-    tasks: [],
-  },
-];
 
 export const reloadTaskAtom = atom(false);
 
@@ -59,6 +25,20 @@ const Tasks = () => {
       .finally(() => {
         setReload(false);
       });
+
+    // let userId = localStorage.getItem("tf_user_id");
+    // if (userId) {
+    //   fetchTasksByUserId(userId)
+    //     .then((res) => {
+    //       if (res?.status === "success") {
+    //         setTasks(res?.user_tasks ?? []);
+    //       }
+    //     })
+    //     .catch(() => {})
+    //     .finally(() => {
+    //       setReload(false);
+    //     });
+    // }
   };
   useEffect(() => {
     getTaskInfo();
@@ -81,7 +61,7 @@ const Tasks = () => {
         }
         if (task.progress === "In Progress") {
           progressArr.push(task);
-        } else if (task.progress === "In Review") {
+        } else if (task.progress === "Review") {
           reviewArr.push(task);
         } else if (task.progress === "Done") {
           doneArr.push(task);
